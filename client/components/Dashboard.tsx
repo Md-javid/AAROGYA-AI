@@ -20,6 +20,7 @@ import TrainerConnectView from './TrainerConnectView';
 import FoodMarketplaceView from './FoodMarketplaceView';
 import MovementTracker from './MovementTracker';
 import FoodTracker from './FoodTracker';
+import RoadmapView from './RoadmapView';
 import { PieChart, Pie, Cell, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
 import {
   Utensils, Dumbbell, MessageCircle, Sun, Moon, Droplets, Flame,
@@ -175,19 +176,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
   const dateStr = currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   const navItems = [
-    { id: 'overview',     label: 'Home',       icon: LayoutDashboard, color: '#9B6BFF' },
-    { id: 'movement',     label: 'Move',       icon: Activity,        color: '#22E5B5' },
-    { id: 'food',         label: 'Food Log',   icon: Utensils,        color: '#FFB547' },
-    { id: 'rituals',      label: 'Habits',     icon: Clock,           color: '#4F8EF7' },
-    { id: 'diet',         label: 'Nutrition',  icon: Leaf,            color: '#10B981' },
-    { id: 'workout',      label: 'Workout',    icon: Dumbbell,        color: '#FF5FA0' },
-    { id: 'yoga',         label: 'Calm',       icon: Lotus,           color: '#8B5CF6' },
-    { id: 'gym',          label: 'Gym',        icon: MapPin,          color: '#F43F5E' },
-    { id: 'trainers',     label: 'Trainers',   icon: Users,           color: '#06B6D4' },
-    { id: 'marketplace',  label: 'Market',     icon: ShoppingCart,    color: '#F59E0B' },
-    { id: 'chat',         label: 'AI Coach',   icon: MessageCircle,   color: '#A855F7' },
-    { id: 'progress',     label: 'Progress',   icon: TrendingUp,      color: '#14B8A6' },
-    { id: 'settings',     label: 'Profile',    icon: SettingsIcon,    color: '#64748B' },
+    { id: 'overview', label: 'Home', icon: LayoutDashboard, color: '#9B6BFF' },
+    { id: 'workout', label: 'Train', icon: Dumbbell, color: '#FF5FA0' },
+    { id: 'roadmap', label: 'Roadmap', icon: Target, color: '#F59E0B' },
+    { id: 'diet', label: 'Nutrition', icon: Leaf, color: '#10B981' },
+    { id: 'yoga', label: 'Wellness', icon: Lotus, color: '#8B5CF6' },
+    { id: 'chat', label: 'AI Coach', icon: MessageCircle, color: '#A855F7' },
+    { id: 'progress', label: 'Progress', icon: TrendingUp, color: '#14B8A6' },
+    { id: 'settings', label: 'Profile', icon: SettingsIcon, color: '#64748B' },
   ];
 
 
@@ -201,30 +197,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
         </div>
       )}
 
-      {/* ── TOP NAV — FULL WIDTH ── */}
+      {/* ── TOP NAV ── */}
       <nav className="fixed top-0 left-0 right-0 z-[100] w-full">
-        <div style={{ background: 'rgba(8,12,28,0.75)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+        <div style={isDarkMode
+          ? { background: 'rgba(8,12,28,0.85)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.10)' }
+          : { background: 'rgba(255,255,255,0.90)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 1px 16px rgba(0,0,0,0.06)' }}
           className="px-4 md:px-6 py-3 flex items-center justify-between gap-3">
 
-          {/* Logo */}
           <div className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0" onClick={() => setActiveTab('overview')}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
               style={{ background: 'linear-gradient(135deg, #9B6BFF, #FF5FA0)' }}>
               <Zap size={16} className="text-white fill-white" />
             </div>
             <div>
-              <span className="font-black text-base tracking-tight text-white">Aarogya</span>
-              {/* Level badge */}
+              <span className={`font-black text-base tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Aarogya</span>
               <span className="ml-2 level-badge text-xs px-2 py-0.5">Lv{level}</span>
             </div>
           </div>
 
-          {/* XP bar (desktop) */}
+          {/* XP bar */}
           <div className="hidden md:flex items-center gap-3 flex-1 max-w-[200px]">
             <div className="xp-bar flex-1">
               <div className="xp-fill" style={{ width: `${((xp % 500) / 500) * 100}%` }} />
             </div>
-            <span className="text-white/40 text-xs font-bold whitespace-nowrap">{xp % 500}/500</span>
+            <span className={`text-xs font-bold whitespace-nowrap ${isDarkMode ? 'text-white/40' : 'text-slate-400'}`}>{xp % 500}/500</span>
           </div>
 
           {/* Streak */}
@@ -232,28 +228,26 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
             🔥 {streak}d
           </div>
 
-          {/* Nav Pills — scrollable */}
+          {/* Nav Pills */}
           <div className="flex-1 overflow-x-auto scrollbar-hide">
             <div className="flex items-center gap-1 min-w-max mx-auto justify-center">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as DashboardTab)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all whitespace-nowrap relative group ${
-                    activeTab === item.id
-                      ? 'text-white shadow-lg'
-                      : 'text-white/50 hover:text-white/80'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all whitespace-nowrap relative group ${activeTab === item.id
+                    ? 'shadow-lg'
+                    : isDarkMode ? 'text-white/50 hover:text-white/80' : 'text-slate-400 hover:text-slate-700'
+                    }`}
                   style={activeTab === item.id ? {
                     background: `linear-gradient(135deg, ${item.color}30, ${item.color}20)`,
                     border: `1px solid ${item.color}50`,
-                    boxShadow: `0 0 16px ${item.color}30`
-                  } : {
-                    background: 'transparent',
-                  }}
+                    boxShadow: `0 0 16px ${item.color}30`,
+                    color: item.color,
+                  } : { background: 'transparent' }}
                 >
                   <item.icon size={13} style={activeTab === item.id ? { color: item.color } : {}} />
-                  <span className={`font-black text-[9px] uppercase tracking-widest hidden lg:block`}>{item.label}</span>
+                  <span className="font-black text-[9px] uppercase tracking-widest hidden lg:block">{item.label}</span>
                 </button>
               ))}
             </div>
@@ -264,17 +258,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
             {/* Elder Mode toggle */}
             {onToggleElderMode && (
               <button onClick={onToggleElderMode} title="Elder Mode (Large Text)"
-                className={`hidden sm:flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  elderMode ? 'text-white' : 'text-white/40 hover:text-white/70'
-                }`}
+                className={`hidden sm:flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${elderMode ? 'text-white' : 'text-white/40 hover:text-white/70'
+                  }`}
                 style={elderMode ? { background: 'rgba(255,95,160,0.25)', border: '1px solid rgba(255,95,160,0.4)' } : {}}>
                 ♿ <span className="hidden md:inline">Elder</span>
               </button>
             )}
             {/* Theme toggle */}
             <button onClick={onToggleDarkMode}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all">
-              {isDarkMode ? <Sun size={16}/> : <Moon size={16}/>}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-black/10 ${isDarkMode ? 'text-white/60 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             {/* Avatar */}
             <div className="w-9 h-9 rounded-xl overflow-hidden cursor-pointer hover:scale-110 transition-transform flex-shrink-0 border border-white/20"
@@ -322,8 +315,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                 {/* ── HERO GREETING ROW ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                  {/* Greeting + Quote card */}
-                  <div className="lg:col-span-2 relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-obsidian-950 via-slate-900 to-indigo-950 p-8 md:p-10 text-white shadow-2xl border border-white/5 group">
+                  {/* Hero Greeting card */}
+                  <div className={`lg:col-span-2 relative overflow-hidden rounded-[2.5rem] p-8 md:p-10 shadow-2xl border group ${isDarkMode
+                    ? 'bg-gradient-to-br from-obsidian-950 via-slate-900 to-indigo-950 text-white border-white/5'
+                    : 'bg-gradient-to-br from-violet-50 via-white to-indigo-50 text-slate-900 border-slate-200/80'}`}>
+                    {/* Ambient blobs */}
                     <div className="absolute inset-0 opacity-10">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-saffron-500 rounded-full blur-3xl" />
                       <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500 rounded-full blur-3xl" />
@@ -331,18 +327,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-2xl">{greetingEmoji}</span>
-                        <span className="text-saffron-400 text-[10px] font-black uppercase tracking-[0.4em]">{greeting}</span>
+                        <span className="text-saffron-500 text-[10px] font-black uppercase tracking-[0.4em]">{greeting}</span>
                       </div>
                       <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-2">
-                        Hey, <span className="text-transparent bg-clip-text bg-gradient-to-r from-saffron-400 to-orange-300">{user.name.split(' ')[0]}</span> 👋
+                        Hey, <span className="text-transparent bg-clip-text bg-gradient-to-r from-saffron-500 to-orange-400">{user.name.split(' ')[0]}</span> 👋
                       </h1>
-                      <p className="text-slate-400 text-sm font-medium mb-6 italic">{user.motto || 'Striving for balance every day.'}</p>
+                      <p className={`text-sm font-medium mb-6 italic ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{user.motto || 'Striving for balance every day.'}</p>
 
                       {/* Animated Quote */}
                       <div className={`transition-all duration-500 ${quoteVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                          <p className="text-sm text-slate-300 italic leading-relaxed">"{QUOTES[quoteIdx].text}"</p>
-                          <p className="text-[10px] text-saffron-400 font-black uppercase tracking-widest mt-2">— {QUOTES[quoteIdx].author}</p>
+                        <div className={`rounded-2xl p-4 border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white/70 border-slate-200'}`}>
+                          <p className={`text-sm italic leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>"{QUOTES[quoteIdx].text}"</p>
+                          <p className="text-[10px] text-saffron-500 font-black uppercase tracking-widest mt-2">— {QUOTES[quoteIdx].author}</p>
                         </div>
                       </div>
 
@@ -350,10 +346,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                         <button onClick={() => setIsVisionOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-saffron-500 hover:bg-saffron-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:scale-105 shadow-lg glow-saffron">
                           <Camera size={14} /> Scan Food
                         </button>
-                        <button onClick={() => setIsVoiceLogOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:scale-105 border border-white/10">
+                        <button onClick={() => setIsVoiceLogOpen(true)} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:scale-105 border ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border-white/10' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'}`}>
                           <Mic size={14} /> Voice Log
                         </button>
-                        <button onClick={fetchPlans} className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:scale-105 border border-white/10">
+                        <button onClick={fetchPlans} className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:scale-105 border ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border-white/10' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'}`}>
                           <RefreshCw size={14} /> Refresh Plans
                         </button>
                       </div>
@@ -361,7 +357,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                   </div>
 
                   {/* Live Clock + Date card */}
-                  <div className="glass-card rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center border border-white/20 relative overflow-hidden">
+                  <div className="glass-card h-full rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-saffron-500/5 to-orange-500/5" />
                     <div className="relative z-10">
                       <div className="text-4xl md:text-5xl font-black text-obsidian-950 dark:text-white tracking-tighter font-mono mb-1">
@@ -397,11 +393,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                   </div>
                 </div>
 
-                {/* ── BENTO GRID ROW ── */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {/* ── HEALTH SNAPSHOT ── */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
                   {/* BMI Card */}
-                  <div className="col-span-2 glass-card rounded-[2rem] p-6 border border-white/20 relative overflow-hidden">
+                  <div className="glass-card rounded-[2rem] p-6 border border-white/20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-20" style={{ background: bmiColor }} />
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><Activity size={10} /> BMI Index</p>
                     <div className="flex items-end gap-3 mb-2">
@@ -415,7 +411,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                   </div>
 
                   {/* Health Score */}
-                  <div className="col-span-2 glass-card rounded-[2rem] p-6 border border-white/20 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                  <div className="glass-card rounded-[2rem] p-6 border border-white/20 flex flex-col items-center justify-center text-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-saffron-500/5 to-orange-500/5" />
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1"><Star size={10} className="text-saffron-500" /> Health Score</p>
                     <div className="relative w-20 h-20 mb-2">
@@ -439,7 +435,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                   </div>
 
                   {/* Water Quick Tracker */}
-                  <div className="col-span-2 glass-card rounded-[2rem] p-6 border border-white/20">
+                  <div className="glass-card rounded-[2rem] p-6 border border-white/20">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1"><Droplets size={10} className="text-blue-500" /> Water Today</p>
                     <div className="flex items-center gap-3 mb-3">
                       <button onClick={() => setWaterGlasses(w => Math.max(0, w - 1))} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all">
@@ -461,196 +457,161 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                     <p className="text-[9px] text-slate-400 mt-2">{waterGlasses >= 8 ? '🎉 Goal reached!' : `${8 - waterGlasses} more to go`}</p>
                   </div>
 
-                  {/* Season Tip */}
-                  <div className={`col-span-2 md:col-span-4 rounded-[2rem] p-6 bg-gradient-to-br ${season.color} text-white border border-white/5 relative overflow-hidden group`}>
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <season.icon size={100} />
-                    </div>
-                    <div className="relative z-10">
-                      <p className="text-[9px] font-black text-white/60 uppercase tracking-widest mb-1 flex items-center gap-1"><Sparkles size={10} /> Season Health Tip</p>
-                      <h4 className="text-xl font-black mb-1">{season.name} <span className="text-white/50 text-sm font-medium">· {season.label}</span></h4>
-                      <p className="text-sm text-white/80 leading-relaxed italic">"{season.tip}"</p>
-                      <button onClick={() => setActiveTab('rituals')} className="mt-3 inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-saffron-300 hover:text-white transition-colors">
-                        View Daily Habits <ArrowRight size={10} />
+                </div>
+
+                {/* ── QUICK LOG ── */}
+                <div className="glass-card rounded-[2.5rem] p-6 border border-white/20">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2 mb-4"><Plus size={11} /> Quick Log</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { id: 'workout', label: 'Workout', icon: Dumbbell, color: '#f97316' },
+                      { id: 'meal', label: 'Meal', icon: Utensils, color: '#34d399' },
+                      { id: 'sleep', label: 'Sleep', icon: BedDouble, color: '#818cf8' },
+                      { id: 'water', label: 'Water', icon: Droplets, color: '#38bdf8' },
+                    ].map(log => (
+                      <button key={log.id}
+                        onClick={() => { setLogType(log.id as any); setIsLogModalOpen(true); }}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-white/10 hover:scale-105 transition-all"
+                        style={{ background: `${log.color}15` }}>
+                        <log.icon size={13} style={{ color: log.color }} />
+                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: log.color }}>{log.label}</span>
                       </button>
-                    </div>
-                  </div>
-
-                  {/* Quick Log Buttons */}
-                  {[
-                    { id: 'workout', label: 'Log Workout', icon: Dumbbell, color: '#f97316', bg: 'from-orange-500/10 to-orange-600/5' },
-                    { id: 'meal', label: 'Log Meal', icon: Utensils, color: '#34d399', bg: 'from-emerald-500/10 to-emerald-600/5' },
-                    { id: 'sleep', label: 'Log Sleep', icon: BedDouble, color: '#818cf8', bg: 'from-indigo-500/10 to-indigo-600/5' },
-                    { id: 'water', label: 'Log Water', icon: Droplets, color: '#38bdf8', bg: 'from-sky-500/10 to-sky-600/5' },
-                  ].map(log => (
-                    <button
-                      key={log.id}
-                      onClick={() => { setLogType(log.id as any); setIsLogModalOpen(true); }}
-                      className={`col-span-1 glass-card rounded-[2rem] p-5 flex flex-col items-center gap-3 group hover:scale-105 transition-all border border-white/20 bg-gradient-to-br ${log.bg}`}
-                    >
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: `${log.color}20` }}>
-                        <log.icon size={22} style={{ color: log.color }} />
-                      </div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 group-hover:text-saffron-500 transition-colors text-center">{log.label}</span>
+                    ))}
+                    <button onClick={() => setIsVoiceLogOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-violet-500/20 bg-violet-500/10 hover:scale-105 transition-all">
+                      <Mic size={13} className="text-violet-400" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-violet-400">Voice</span>
                     </button>
-                  ))}
-
-                  {/* AI Coach Shortcut */}
-                  <div
-                    onClick={() => setActiveTab('chat')}
-                    className="col-span-2 glass-card rounded-[2rem] p-6 border border-white/20 cursor-pointer group hover:scale-[1.02] transition-all relative overflow-hidden bg-gradient-to-br from-violet-500/10 to-purple-600/5"
-                  >
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-violet-500/10 rounded-full blur-2xl" />
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                        <Brain size={22} className="text-violet-500" />
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI Coach</p>
-                        <p className="text-sm font-black text-slate-800 dark:text-white">Ask me anything about your health</p>
-                      </div>
-                      <ChevronRight size={16} className="text-slate-400 ml-auto group-hover:translate-x-1 transition-transform" />
-                    </div>
+                    <button onClick={() => setIsVisionOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-saffron-500/20 bg-saffron-500/10 hover:scale-105 transition-all">
+                      <Camera size={13} className="text-saffron-400" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-saffron-400">Scan Food</span>
+                    </button>
+                    <button onClick={() => setActiveTab('movement')}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 hover:scale-105 transition-all">
+                      <Activity size={13} className="text-emerald-400" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Move</span>
+                    </button>
+                    <button onClick={() => setActiveTab('food')}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-amber-500/20 bg-amber-500/10 hover:scale-105 transition-all">
+                      <Utensils size={13} className="text-amber-400" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">Food Log</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* ── NUTRITION PREVIEW (if plan loaded) ── */}
-                {dietPlan && (
-                  <div className="glass-card rounded-[2.5rem] p-8 border border-white/20">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2"><Apple size={14} /> Today's Meal Plan</h3>
-                      <button onClick={() => setActiveTab('diet')} className="text-[10px] font-black text-saffron-500 uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
-                        Full Plan <ArrowRight size={10} />
+                {/* ── SEASON TIP ── */}
+                <div className={`rounded-[2.5rem] p-7 bg-gradient-to-br ${season.color} text-white border border-white/5 relative overflow-hidden group`}>
+                  <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"><season.icon size={80} /></div>
+                  <div className="relative z-10 flex items-center justify-between gap-6">
+                    <div>
+                      <p className="text-[9px] font-black text-white/60 uppercase tracking-widest mb-1 flex items-center gap-1"><Sparkles size={10} /> Seasonal Tip · {season.label}</p>
+                      <h4 className="text-lg font-black mb-1">{season.name}</h4>
+                      <p className="text-sm text-white/80 leading-relaxed italic max-w-xl">{season.tip}</p>
+                    </div>
+                    <button onClick={() => setActiveTab('rituals')}
+                      className="flex-shrink-0 flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-saffron-300 hover:text-white transition-colors">
+                      Habits <ArrowRight size={10} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── TODAY'S PLANS ── */}
+                {(dietPlan || workoutPlan || loading) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    {/* Diet Preview */}
+                    <div className="glass-card rounded-[2.5rem] p-7 border border-white/20">
+                      <div className="flex items-center justify-between mb-5">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2"><Apple size={12} /> Today's Meals</h3>
+                        <button onClick={() => setActiveTab('diet')} className="text-[10px] font-black text-saffron-500 uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">Full plan <ArrowRight size={10} /></button>
+                      </div>
+                      {loading ? (
+                        <div className="flex items-center justify-center py-8"><Loader2 className="animate-spin text-saffron-500" size={24} /></div>
+                      ) : dietPlan ? (
+                        <div className="space-y-1">
+                          {['breakfast', 'lunch', 'snack', 'dinner'].map(m => (
+                            <div key={m} onClick={() => setSelectedMeal({ meal: (dietPlan as any)[m], type: m })}
+                              className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors">
+                              <div className="flex items-center gap-3">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 w-14">{m}</span>
+                                <p className="text-xs font-black text-slate-800 dark:text-white group-hover:text-saffron-500 transition-colors line-clamp-1">{(dietPlan as any)[m].dishName}</p>
+                              </div>
+                              <span className="text-[9px] text-slate-400 flex items-center gap-0.5 flex-shrink-0"><Flame size={9} className="text-orange-400" />{(dietPlan as any)[m].calories}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Workout Preview */}
+                    <div className="glass-card rounded-[2.5rem] p-7 border border-white/20">
+                      <div className="flex items-center justify-between mb-5">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2"><Dumbbell size={12} /> Today's Workout</h3>
+                        <button onClick={() => setActiveTab('workout')} className="text-[10px] font-black text-saffron-500 uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">Full plan <ArrowRight size={10} /></button>
+                      </div>
+                      {loading ? (
+                        <div className="flex items-center justify-center py-8"><Loader2 className="animate-spin text-saffron-500" size={24} /></div>
+                      ) : workoutPlan ? (
+                        <div className="space-y-1">
+                          {workoutPlan.mainWorkout.slice(0, 5).map((ex: any, i: number) => (
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                              <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[8px] font-black text-indigo-600">{i + 1}</span>
+                              </div>
+                              <p className="text-xs font-black text-slate-800 dark:text-white flex-1 line-clamp-1">{ex.name}</p>
+                              <span className="text-[9px] text-slate-400 flex-shrink-0">{ex.sets}×{ex.reps}</span>
+                            </div>
+                          ))}
+                          {workoutPlan.mainWorkout.length > 5 && (
+                            <p className="text-[9px] text-slate-400 text-center pt-1">+{workoutPlan.mainWorkout.length - 5} more</p>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── EXPLORE ── */}
+                <div className="glass-card rounded-[2.5rem] p-7 border border-white/20">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2 mb-4"><MapPin size={11} /> Explore</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {[
+                      { id: 'gym', label: 'Find Gyms', desc: 'Locate nearby gyms & studios', icon: MapPin, color: '#818cf8' },
+                      { id: 'trainers', label: 'Trainers', desc: 'Book certified personal trainers', icon: Users, color: '#a78bfa' },
+                      { id: 'marketplace', label: 'Healthy Market', desc: 'Order fresh meals from home chefs', icon: ShoppingCart, color: '#34d399' },
+                    ].map(item => (
+                      <button key={item.id} onClick={() => setActiveTab(item.id as any)}
+                        className="flex items-center gap-4 p-4 rounded-2xl border border-white/10 hover:border-white/20 hover:scale-[1.02] transition-all group text-left"
+                        style={{ background: `${item.color}10` }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}20` }}>
+                          <item.icon size={16} style={{ color: item.color }} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-slate-800 dark:text-white">{item.label}</p>
+                          <p className="text-[9px] text-slate-400 leading-tight mt-0.5 truncate">{item.desc}</p>
+                        </div>
+                        <ChevronRight size={13} className="text-slate-400 ml-auto flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
                       </button>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {['breakfast', 'lunch', 'snack', 'dinner'].map((m, i) => (
-                        <div key={m} onClick={() => setSelectedMeal({ meal: (dietPlan as any)[m], type: m })}
-                          className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-saffron-300 hover:bg-saffron-50 dark:hover:bg-saffron-950/10 transition-all group">
-                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 group-hover:text-saffron-500">{m}</span>
-                          <p className="text-xs font-black text-slate-800 dark:text-white mt-1 leading-tight line-clamp-2">{(dietPlan as any)[m].dishName}</p>
-                          <div className="flex items-center gap-1 mt-2">
-                            <Flame size={10} className="text-orange-400" />
-                            <span className="text-[9px] font-bold text-slate-500">{(dietPlan as any)[m].calories} kcal</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── WORKOUT PREVIEW (if plan loaded) ── */}
-                {workoutPlan && (
-                  <div className="glass-card rounded-[2.5rem] p-8 border border-white/20">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2"><Dumbbell size={14} /> Today's Workout</h3>
-                      <button onClick={() => setActiveTab('workout')} className="text-[10px] font-black text-saffron-500 uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
-                        Full Plan <ArrowRight size={10} />
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      {workoutPlan.mainWorkout.slice(0, 4).map((ex: any, i: number) => (
-                        <div key={i} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
-                          <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                            <span className="text-[9px] font-black text-indigo-600">{i + 1}</span>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black text-slate-800 dark:text-white">{ex.name}</p>
-                            <p className="text-[8px] text-slate-400">{ex.sets} sets · {ex.reps} reps</p>
-                          </div>
-                        </div>
-                      ))}
-                      {workoutPlan.mainWorkout.length > 4 && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-black text-slate-400">+{workoutPlan.mainWorkout.length - 4} more</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {loading && (
-                  <div className="glass-card rounded-[2.5rem] p-12 flex flex-col items-center gap-4 border border-white/20">
-                    <div className="relative">
-                      <Loader2 className="animate-spin text-saffron-500" size={48} />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Sparkles size={16} className="text-saffron-500/50 animate-pulse" />
-                      </div>
-                    </div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">AI is building your personalized plans...</p>
-                  </div>
-                )}
-
-                {/* ── NEW FEATURE DISCOVERY CARDS ── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {/* Gym Locator */}
-                  <div
-                    onClick={() => setActiveTab('gym')}
-                    className="relative overflow-hidden rounded-[2.5rem] p-7 cursor-pointer group hover:scale-[1.02] transition-all border border-white/10 shadow-xl bg-gradient-to-br from-indigo-950 to-slate-900"
-                  >
-                    <div className="absolute top-0 right-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <MapPin size={90} className="text-indigo-400" />
-                    </div>
-                    <div className="relative z-10">
-                      <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <MapPin size={22} className="text-indigo-400" />
-                      </div>
-                      <h4 className="text-lg font-black text-white mb-1">Find Nearby Gyms</h4>
-                      <p className="text-sm text-slate-400 leading-relaxed mb-4">Locate gyms, yoga studios & fitness centres near you with ratings and directions.</p>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-indigo-400 uppercase tracking-widest group-hover:gap-2 transition-all">
-                        Explore <ChevronRight size={12} />
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Trainer Connect */}
-                  <div
-                    onClick={() => setActiveTab('trainers')}
-                    className="relative overflow-hidden rounded-[2.5rem] p-7 cursor-pointer group hover:scale-[1.02] transition-all border border-white/10 shadow-xl bg-gradient-to-br from-violet-950 to-purple-950"
-                  >
-                    <div className="absolute top-0 right-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <Users size={90} className="text-violet-400" />
-                    </div>
-                    <div className="relative z-10">
-                      <div className="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Users size={22} className="text-violet-400" />
-                      </div>
-                      <h4 className="text-lg font-black text-white mb-1">Connect with Trainers</h4>
-                      <p className="text-sm text-slate-400 leading-relaxed mb-4">Chat, book sessions, and train with certified personal trainers online or in-person.</p>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-violet-400 uppercase tracking-widest group-hover:gap-2 transition-all">
-                        Browse Trainers <ChevronRight size={12} />
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Food Marketplace */}
-                  <div
-                    onClick={() => setActiveTab('marketplace')}
-                    className="relative overflow-hidden rounded-[2.5rem] p-7 cursor-pointer group hover:scale-[1.02] transition-all border border-white/10 shadow-xl bg-gradient-to-br from-emerald-950 to-teal-950"
-                  >
-                    <div className="absolute top-0 right-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <Leaf size={90} className="text-emerald-400" />
-                    </div>
-                    <div className="relative z-10">
-                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Leaf size={22} className="text-emerald-400" />
-                      </div>
-                      <h4 className="text-lg font-black text-white mb-1">Healthy Food Market</h4>
-                      <p className="text-sm text-slate-400 leading-relaxed mb-4">Order fresh homemade healthy meals from home chefs. Perfect for students & gym-goers.</p>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-400 uppercase tracking-widest group-hover:gap-2 transition-all">
-                        Order Food <ChevronRight size={12} />
-                      </span>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* ── OTHER TABS ── */}
+            {/* ── SECONDARY TABS (kept accessible) ── */}
+            {activeTab === 'movement' && <MovementTracker elderMode={elderMode} onXpEarned={awardXp} />}
+            {activeTab === 'food' && <FoodTracker elderMode={elderMode} onXpEarned={awardXp} onOpenMealVision={() => setIsVisionOpen(true)} />}
+            {activeTab === 'rituals' && <RitualsView user={user} isDarkMode={isDarkMode} />}
+
+            {/* ── PRIMARY TABS ── */}
             {activeTab === 'gym' && <GymLocatorView />}
             {activeTab === 'trainers' && <TrainerConnectView />}
             {activeTab === 'marketplace' && <FoodMarketplaceView />}
+            {activeTab === 'roadmap' && <RoadmapView user={user} />}
             {activeTab === 'rituals' && <RitualsView user={user} isDarkMode={isDarkMode} />}
+            {activeTab === 'movement' && <MovementTracker elderMode={elderMode} onXpEarned={awardXp} />}
+            {activeTab === 'food' && <FoodTracker elderMode={elderMode} onXpEarned={awardXp} onOpenMealVision={() => setIsVisionOpen(true)} />}
             {activeTab === 'diet' && (
               <div className="space-y-8 animate-slide-up">
                 <div className="bg-obsidian-950 dark:bg-white rounded-[3rem] p-10 md:p-12 text-white dark:text-obsidian-950 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
@@ -680,12 +641,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent((dietPlan as any)[m].dishName + ' recipe')}`} target="_blank" className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl text-slate-400 hover:text-red-500 transition-all hover:scale-110 border border-white/10">
-                          <Video size={20} />
-                        </a>
-                        <button onClick={() => setSelectedMeal({ meal: (dietPlan as any)[m], type: m })} className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl text-slate-400 hover:text-saffron-500 transition-all hover:scale-110 border border-white/10">
-                          <Maximize2 size={20} />
-                        </button>
+                        <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent((dietPlan as any)[m].dishName + ' recipe')}`} target="_blank" className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl text-slate-400 hover:text-red-500 transition-all hover:scale-110 border border-white/10"><Video size={20} /></a>
+                        <button onClick={() => setSelectedMeal({ meal: (dietPlan as any)[m], type: m })} className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl text-slate-400 hover:text-saffron-500 transition-all hover:scale-110 border border-white/10"><Maximize2 size={20} /></button>
                       </div>
                     </div>
                   ))}
@@ -725,14 +682,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                             <div key={idx} className="glass-card p-6 rounded-[2rem] group hover:border-indigo-500/30 transition-all">
                               <div className="flex justify-between items-start mb-3">
                                 <h5 className="font-black text-base text-obsidian-950 dark:text-white italic pr-3">{ex.name}</h5>
-                                <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise tutorial')}`} target="_blank" className="p-2 bg-slate-50 dark:bg-slate-900/40 rounded-xl text-slate-400 hover:text-red-500 transition-all hover:scale-110 border border-white/10 flex-shrink-0">
-                                  <Video size={14} />
-                                </a>
+                                <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise tutorial')}`} target="_blank" className="p-2 bg-slate-50 dark:bg-slate-900/40 rounded-xl text-slate-400 hover:text-red-500 transition-all hover:scale-110 border border-white/10 flex-shrink-0"><Video size={14} /></a>
                               </div>
                               <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed italic mb-4">"{ex.instruction}"</p>
-                              <div className="inline-block px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase rounded-xl tracking-widest">
-                                {ex.sets} Sets · {ex.reps} Reps
-                              </div>
+                              <div className="inline-block px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase rounded-xl tracking-widest">{ex.sets} Sets · {ex.reps} Reps</div>
                             </div>
                           ))}
                         </div>
@@ -743,17 +696,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
               </div>
             )}
             {activeTab === 'yoga' && <DhyanaView user={user} isDarkMode={isDarkMode} />}
-            {activeTab === 'shopping' && <ShoppingView dietPlan={dietPlan} isDarkMode={isDarkMode} />}
             {activeTab === 'chat' && <Chat user={user} />}
             {activeTab === 'progress' && <ProgressView user={user} isDarkMode={isDarkMode} />}
             {activeTab === 'settings' && <SettingsView user={user} isDarkMode={isDarkMode} onToggleDarkMode={onToggleDarkMode} onReset={onReset} onUpdateProfile={onUpdateProfile} />}
-            {activeTab === 'movement' && <MovementTracker elderMode={elderMode} onXpEarned={awardXp} />}
-            {activeTab === 'food' && <FoodTracker elderMode={elderMode} onXpEarned={awardXp} onOpenMealVision={() => setIsVisionOpen(true)} />}
           </div>
         </div>
       </main>
 
-      {/* ── FLOATING QUICK ACTION BAR (bottom) ── */}
+      {/* ── FLOATING QUICK ACTION BAR ── */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90]">
         <div className="glass rounded-full shadow-2xl px-4 py-3 flex items-center gap-2 border border-white/20">
           {[
@@ -798,3 +748,4 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
 };
 
 export default Dashboard;
+

@@ -2,7 +2,19 @@ import { Response } from 'express';
 import { User } from '../models/User.js';
 import { AuthRequest } from '../middleware/auth.js';
 import * as aiService from '../services/aiService.js';
+import { analyzeUserContext } from '../utils/contextAnalyzer.js';
 
+// ─── Helper: fetch context (non-blocking on failure) ──────────
+const getContext = async (userId: string) => {
+    try {
+        return await analyzeUserContext(userId);
+    } catch (err) {
+        console.warn('⚠ Context analysis failed (non-fatal):', err);
+        return undefined;
+    }
+};
+
+// ─── Diet Plan ─────────────────────────────────────────────────
 export const generateDietPlan = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         if (!aiService.isApiKeyAvailable()) {
@@ -15,13 +27,21 @@ export const generateDietPlan = async (req: AuthRequest, res: Response): Promise
         }
 
         const user = await User.findById(req.userId);
-        if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
-        }
+        if (!user) { res.status(404).json({ error: 'User not found' }); return; }
 
-        const plan = await aiService.generateDietPlan(user.profile);
-        res.json({ plan });
+        // Analyze last 7 days before generating plan
+        const ctx = await getContext(req.userId!);
+
+        const plan = await aiService.generateDietPlan(user.profile, ctx);
+
+        res.json({
+            plan,
+            context: ctx ? {
+                tone: ctx.tone,
+                issues: ctx.issues,
+                highlights: ctx.highlights,
+            } : null,
+        });
     } catch (error: any) {
         console.error('Diet plan generation error:', error);
         res.status(500).json({
@@ -32,6 +52,7 @@ export const generateDietPlan = async (req: AuthRequest, res: Response): Promise
     }
 };
 
+// ─── Workout Plan ──────────────────────────────────────────────
 export const generateWorkoutPlan = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         if (!aiService.isApiKeyAvailable()) {
@@ -44,13 +65,20 @@ export const generateWorkoutPlan = async (req: AuthRequest, res: Response): Prom
         }
 
         const user = await User.findById(req.userId);
-        if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
-        }
+        if (!user) { res.status(404).json({ error: 'User not found' }); return; }
 
-        const plan = await aiService.generateWorkoutPlan(user.profile);
-        res.json({ plan });
+        const ctx = await getContext(req.userId!);
+
+        const plan = await aiService.generateWorkoutPlan(user.profile, ctx);
+
+        res.json({
+            plan,
+            context: ctx ? {
+                tone: ctx.tone,
+                issues: ctx.issues,
+                highlights: ctx.highlights,
+            } : null,
+        });
     } catch (error: any) {
         console.error('Workout plan generation error:', error);
         res.status(500).json({
@@ -61,34 +89,7 @@ export const generateWorkoutPlan = async (req: AuthRequest, res: Response): Prom
     }
 };
 
-export const analyzeMeal = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        if (!aiService.isApiKeyAvailable()) {
-            res.status(503).json({
-                error: 'AI service unavailable',
-                message: 'GEMINI_API_KEY is not configured. Please add it to your .env file.',
-                helpUrl: 'https://aistudio.google.com/app/apikey'
-            });
-            return;
-        }
-
-        const { base64Image } = req.body;
-        if (!base64Image) {
-            res.status(400).json({ error: 'base64Image is required' });
-            return;
-        }
-
-        const result = await aiService.analyzeMealImage(base64Image);
-        res.json({ result });
-    } catch (error: any) {
-        console.error('Meal analysis error:', error);
-        res.status(500).json({
-            error: 'Failed to analyze meal',
-            message: error.message || 'An unexpected error occurred'
-        });
-    }
-};
-
+// ─── Chat ──────────────────────────────────────────────────────
 export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         if (!aiService.isApiKeyAvailable()) {
@@ -101,19 +102,19 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
         }
 
         const { message } = req.body;
-        if (!message) {
-            res.status(400).json({ error: 'message is required' });
-            return;
-        }
+        if (!message) { res.status(400).json({ error: 'message is required' }); return; }
 
         const user = await User.findById(req.userId);
-        if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
-        }
+        if (!user) { res.status(404).json({ error: 'User not found' }); return; }
 
-        const response = await aiService.chatWithCoach(message, user.profile);
-        res.json({ response });
+        const ctx = await getContext(req.userId!);
+
+        const response = await aiService.chatWithCoach(message, user.profile, ctx);
+
+        res.json({
+            response,
+            coachTone: ctx?.tone ?? 'encouraging',
+        });
     } catch (error: any) {
         console.error('Chat error:', error);
         res.status(500).json({
@@ -123,12 +124,41 @@ export const chat = async (req: AuthRequest, res: Response): Promise<void> => {
     }
 };
 
+// ─── Meal Image Analysis ───────────────────────────────────────
+export const analyzeMeal = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        if (!aiService.isApiKeyAvailable()) {
+            res.status(503).json({
+                error: 'AI service unavailable',
+                message: 'GEMINI_API_KEY is not configured.',
+                helpUrl: 'https://aistudio.google.com/app/apikey'
+            });
+            return;
+        }
+
+        const { base64Image } = req.body;
+        if (!base64Image) { res.status(400).json({ error: 'base64Image is required' }); return; }
+
+        const user = await User.findById(req.userId);
+
+        const result = await aiService.analyzeMealImage(base64Image, user?.profile);
+        res.json({ result });
+    } catch (error: any) {
+        console.error('Meal analysis error:', error);
+        res.status(500).json({
+            error: 'Failed to analyze meal',
+            message: error.message || 'An unexpected error occurred'
+        });
+    }
+};
+
+// ─── Voice Log ─────────────────────────────────────────────────
 export const processVoice = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         if (!aiService.isApiKeyAvailable()) {
             res.status(503).json({
                 error: 'AI service unavailable',
-                message: 'GEMINI_API_KEY is not configured. Please add it to your .env file.',
+                message: 'GEMINI_API_KEY is not configured.',
                 helpUrl: 'https://aistudio.google.com/app/apikey'
             });
             return;

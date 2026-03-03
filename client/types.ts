@@ -136,7 +136,8 @@ export interface EarnedBadge extends Badge {
   earnedAt: string;
 }
 
-export type DashboardTab = 'overview' | 'diet' | 'workout' | 'rituals' | 'yoga' | 'chat' | 'progress' | 'settings' | 'shopping' | 'gym' | 'trainers' | 'marketplace';
+export type DashboardTab = 'overview' | 'diet' | 'workout' | 'rituals' | 'yoga' | 'chat' | 'progress' | 'settings' | 'shopping' | 'gym' | 'trainers' | 'marketplace' | 'roadmap' | 'movement' | 'food';
+
 
 export interface DailyStats {
   caloriesBurned: number;

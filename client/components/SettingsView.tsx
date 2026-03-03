@@ -258,38 +258,64 @@ const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </section>
 
-      {/* Ayurvedic Profile Selection */}
+      {/* Wellness Personality Selection */}
       <section className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 md:p-12 border border-slate-100 dark:border-slate-800 shadow-sm space-y-10">
         <div className="flex items-center gap-4">
           <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-3xl text-emerald-600"><Lotus size={24} /></div>
           <div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Ayurvedic Constitution</h3>
-            <p className="text-xs text-slate-400 font-medium tracking-wide mt-0.5 uppercase">Sync your logs with your Dosha</p>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Wellness Personality</h3>
+            <p className="text-xs text-slate-400 font-medium tracking-wide mt-0.5 uppercase">Personalizes your diet, workouts & coaching style</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { id: 'Vata', label: 'Vata', icon: Wind, color: 'text-sky-500', bg: 'bg-sky-50 dark:bg-sky-900/20', desc: 'Air & Space: Focus on grounding and warmth.' },
-            { id: 'Pitta', label: 'Pitta', icon: Zap, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20', desc: 'Fire & Water: Focus on cooling and moderation.' },
-            { id: 'Kapha', label: 'Kapha', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', desc: 'Earth & Water: Focus on movement and heat.' }
-          ].map(dosha => (
+            {
+              id: 'Vata',
+              label: 'Calm & Steady',
+              icon: Wind,
+              color: 'text-sky-500',
+              bg: 'bg-sky-50 dark:bg-sky-900/20',
+              tag: 'Creative · Flexible · Light',
+              desc: 'Best suited for warm, grounding meals and gentle, rhythmic workouts.',
+            },
+            {
+              id: 'Pitta',
+              label: 'Driven & Focused',
+              icon: Zap,
+              color: 'text-orange-500',
+              bg: 'bg-orange-50 dark:bg-orange-900/20',
+              tag: 'Ambitious · Sharp · Intense',
+              desc: 'Best suited for moderate-intensity training, cooling foods and balanced recovery.',
+            },
+            {
+              id: 'Kapha',
+              label: 'Strong & Grounded',
+              icon: Activity,
+              color: 'text-emerald-500',
+              bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+              tag: 'Steady · Resilient · Enduring',
+              desc: 'Best suited for high-energy workouts, light spiced meals and early starts.',
+            },
+          ].map(type => (
             <button
-              key={dosha.id}
-              onClick={() => onUpdateProfile({ dosha: dosha.id as any })}
-              className={`flex flex-col items-center p-8 rounded-[2.5rem] border-2 transition-all group ${user.dosha === dosha.id
+              key={type.id}
+              onClick={() => onUpdateProfile({ dosha: type.id as any })}
+              className={`flex flex-col items-center p-8 rounded-[2.5rem] border-2 transition-all group ${
+                user.dosha === type.id
                   ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10 shadow-xl scale-105'
                   : 'border-slate-50 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-900/40 bg-white dark:bg-slate-900 shadow-sm'
-                }`}
+              }`}
             >
-              <div className={`p-5 rounded-3xl mb-4 transition-all group-hover:scale-110 ${dosha.bg} ${dosha.color}`}>
-                <dosha.icon size={32} />
+              <div className={`p-5 rounded-3xl mb-4 transition-all group-hover:scale-110 ${type.bg} ${type.color}`}>
+                <type.icon size={32} />
               </div>
-              <span className="font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">{dosha.label}</span>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold text-center leading-relaxed tracking-tight px-2">{dosha.desc}</p>
-              {user.dosha === dosha.id && (
+              <span className="font-black text-slate-900 dark:text-white mb-1 text-sm tracking-tight text-center">{type.label}</span>
+              <span className={`text-[9px] font-black uppercase tracking-widest mb-3 ${type.color}`}>{type.tag}</span>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium text-center leading-relaxed px-2">{type.desc}</p>
+              {user.dosha === type.id && (
                 <div className="mt-4 flex items-center gap-1.5 text-[8px] font-black uppercase text-emerald-600 tracking-widest">
-                  <CheckCircle size={10} /> Currently Active
+                  <CheckCircle size={10} /> Active
                 </div>
               )}
             </button>

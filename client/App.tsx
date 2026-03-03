@@ -7,25 +7,51 @@ import Dashboard from './components/Dashboard';
 /* ─────────────────────────────────────────────
    iOS 19 Liquid-Glass Aurora Background
 ───────────────────────────────────────────── */
-const AuroraBackground: React.FC = () => (
+const AuroraBackground: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => (
   <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
-    <div className="absolute inset-0" style={{
-      background: 'linear-gradient(160deg, #050812 0%, #0D0B1E 40%, #080E1F 70%, #050812 100%)'
-    }} />
-    <div className="absolute top-[-15%] left-[-10%] w-[65vw] h-[65vw] rounded-full animate-blob"
-      style={{ background: 'radial-gradient(circle, rgba(79,142,247,0.22) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-    <div className="absolute top-[-5%] right-[-10%] w-[55vw] h-[55vw] rounded-full animate-blob animation-delay-2000"
-      style={{ background: 'radial-gradient(circle, rgba(155,107,255,0.20) 0%, transparent 70%)', filter: 'blur(70px)' }} />
-    <div className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full animate-blob animation-delay-4000"
-      style={{ background: 'radial-gradient(circle, rgba(255,95,160,0.15) 0%, transparent 70%)', filter: 'blur(80px)' }} />
-    <div className="absolute bottom-[10%] right-[5%] w-[40vw] h-[40vw] rounded-full"
-      style={{ background: 'radial-gradient(circle, rgba(34,229,181,0.10) 0%, transparent 70%)', filter: 'blur(50px)', animation: 'blob 14s infinite 6s' }} />
-    <div className="absolute inset-0 opacity-[0.03]"
-      style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)', backgroundSize: '60px 60px' }} />
-    <div className="absolute inset-x-0 top-0 h-px"
-      style={{ background: 'linear-gradient(90deg,transparent 0%,rgba(155,107,255,0.6) 30%,rgba(79,142,247,0.6) 60%,transparent 100%)' }} />
+    {isDarkMode ? (
+      /* ── DARK AURORA ── */
+      <>
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(160deg, #050812 0%, #0D0B1E 40%, #080E1F 70%, #050812 100%)'
+        }} />
+        <div className="absolute top-[-15%] left-[-10%] w-[65vw] h-[65vw] rounded-full animate-blob"
+          style={{ background: 'radial-gradient(circle, rgba(79,142,247,0.22) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute top-[-5%] right-[-10%] w-[55vw] h-[55vw] rounded-full animate-blob animation-delay-2000"
+          style={{ background: 'radial-gradient(circle, rgba(155,107,255,0.20) 0%, transparent 70%)', filter: 'blur(70px)' }} />
+        <div className="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full animate-blob animation-delay-4000"
+          style={{ background: 'radial-gradient(circle, rgba(255,95,160,0.15) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+        <div className="absolute bottom-[10%] right-[5%] w-[40vw] h-[40vw] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(34,229,181,0.10) 0%, transparent 70%)', filter: 'blur(50px)', animation: 'blob 14s infinite 6s' }} />
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div className="absolute inset-x-0 top-0 h-px"
+          style={{ background: 'linear-gradient(90deg,transparent 0%,rgba(155,107,255,0.6) 30%,rgba(79,142,247,0.6) 60%,transparent 100%)' }} />
+      </>
+    ) : (
+      /* ── LIGHT MODE BACKGROUND ── */
+      <>
+        {/* Clean warm base */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(160deg, #EEF1F8 0%, #F5F3FF 35%, #EDF4FF 65%, #F0F4F8 100%)'
+        }} />
+        {/* Soft purple bloom top-left */}
+        <div className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] rounded-full animate-blob"
+          style={{ background: 'radial-gradient(circle, rgba(155,107,255,0.08) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+        {/* Soft blue bloom top-right */}
+        <div className="absolute top-[5%] right-[-5%] w-[45vw] h-[45vw] rounded-full animate-blob animation-delay-2000"
+          style={{ background: 'radial-gradient(circle, rgba(79,142,247,0.07) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+        {/* Warm saffron glow bottom */}
+        <div className="absolute bottom-[-10%] left-[30%] w-[50vw] h-[40vw] rounded-full animate-blob animation-delay-4000"
+          style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.05) 0%, transparent 70%)', filter: 'blur(70px)' }} />
+        {/* Subtle top border line */}
+        <div className="absolute inset-x-0 top-0 h-px"
+          style={{ background: 'linear-gradient(90deg,transparent 0%,rgba(155,107,255,0.3) 30%,rgba(79,142,247,0.3) 60%,transparent 100%)' }} />
+      </>
+    )}
   </div>
 );
+
 
 /* ─────────────────────────────────────────────
    Animated Loading Screen
@@ -57,7 +83,7 @@ const LoadingScreen: React.FC = () => {
         </div>
         <p className="text-white/40 text-sm">Initializing{'.'.repeat(dots)}</p>
         <div className="flex gap-2 justify-center mt-6 flex-wrap px-4">
-          {['🤖 AI Coach','🥗 Food Vision','💪 Movement Track','🔥 Streaks'].map((f,i) => (
+          {['🤖 AI Coach', '🥗 Food Vision', '💪 Movement Track', '🔥 Streaks'].map((f, i) => (
             <span key={f} className="glass-pill px-3 py-1 text-xs text-white/70 animate-fadeIn"
               style={{ animationDelay: `${i * 150 + 200}ms`, animationFillMode: 'both' }}>
               {f}
@@ -76,14 +102,14 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 ───────────────────────────────────────────── */
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userProfile, setUserProfile]         = useState<UserProfile | null>(null);
-  const [loading, setLoading]                 = useState(true);
-  const [isDarkMode, setIsDarkMode]           = useState(true);
-  const [elderMode, setElderMode]             = useState(() => localStorage.getItem('aarogya_elder') === 'true');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [elderMode, setElderMode] = useState(() => localStorage.getItem('aarogya_elder') === 'true');
 
   useEffect(() => {
     const check = async () => {
-      const token     = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('accessToken');
       const savedUser = localStorage.getItem('aarogya_user');
       if (token && savedUser) {
         try {
@@ -95,10 +121,10 @@ const App: React.FC = () => {
             setUserProfile(data.user.profile);
             setIsAuthenticated(true);
           } else {
-            ['accessToken','refreshToken','aarogya_user'].forEach(k => localStorage.removeItem(k));
+            ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => localStorage.removeItem(k));
           }
         } catch {
-          ['accessToken','refreshToken','aarogya_user'].forEach(k => localStorage.removeItem(k));
+          ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => localStorage.removeItem(k));
         }
       }
       setLoading(false);
@@ -129,12 +155,12 @@ const App: React.FC = () => {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile: updates }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   };
 
   const handleLogout = () => {
-    ['accessToken','refreshToken','aarogya_user'].forEach(k => localStorage.removeItem(k));
+    ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => localStorage.removeItem(k));
     setUserProfile(null);
     setIsAuthenticated(false);
   };
@@ -142,8 +168,9 @@ const App: React.FC = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="antialiased min-h-screen relative" style={{ color: '#F0F4FF' }}>
-      <AuroraBackground />
+    <div className="antialiased min-h-screen relative"
+      style={{ color: isDarkMode ? '#F0F4FF' : '#0F1117', background: isDarkMode ? '#050812' : '#EEF1F8' }}>
+      <AuroraBackground isDarkMode={isDarkMode} />
       {!isAuthenticated ? (
         <Auth
           onAuthSuccess={handleAuthSuccess}

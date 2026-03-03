@@ -5,9 +5,9 @@ import { AuthRequest } from './auth.js';
 // Plan limits
 const PLAN_LIMITS = {
     free: {
-        aiDietPlans: 3,
-        aiWorkoutPlans: 3,
-        aiChats: 20,
+        aiDietPlans: -1,      // unlimited on free tier
+        aiWorkoutPlans: -1,
+        aiChats: -1,
     },
     premium: {
         aiDietPlans: 50,

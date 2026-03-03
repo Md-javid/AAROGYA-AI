@@ -10,6 +10,7 @@ import logRoutes from './routes/logs.js';
 import aiRoutes from './routes/ai.js';
 import oauthRoutes from './routes/oauth.js';
 import groceryRoutes from './routes/grocery.js';
+import roadmapRoutes from './routes/roadmap.js';
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/api/auth', oauthRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/grocery', groceryRoutes);
+app.use('/api/roadmap', roadmapRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
