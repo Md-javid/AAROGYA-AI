@@ -1,7 +1,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+// @ts-ignore — no type definitions available for passport-microsoft
 import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
-import { User } from '../models/User.ts';
+import { User } from '../models/User.js';
 import { config } from './env.js';
 
 // Serialize user for session
@@ -98,7 +99,7 @@ if (config.microsoftClientId && config.microsoftClientSecret) {
                 callbackURL: `${config.backendUrl}/api/auth/microsoft/callback`,
                 scope: ['user.read'],
             },
-            async (accessToken, refreshToken, profile, done) => {
+            async (accessToken: any, refreshToken: any, profile: any, done: any) => {
                 try {
                     // Check if user already exists
                     let user = await User.findOne({ email: profile.emails?.[0]?.value });
