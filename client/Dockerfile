@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════
-# ELLAURA Client — Multi-Stage Docker Build
+# Aarogya AI Client — Multi-Stage Docker Build
 # Stage 1: Build React app with Vite
 # Stage 2: Serve with Nginx
 # ═══════════════════════════════════════════════

@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-# ELLAURA — Docker Compose Orchestration
+# AAROGYA AI — Docker Compose Orchestration
 # All services: Frontend, Backend, ML Model, MongoDB
 # ═══════════════════════════════════════════════════════
 #
@@ -16,14 +16,14 @@ services:
   # ── MongoDB Database ──
   mongodb:
     image: mongo:6
-    container_name: ellaura-mongodb
+    container_name: aarogya-mongodb
     restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
-      - ellaura-mongo-data:/data/db
+      - aarogya-mongo-data:/data/db
     environment:
-      MONGO_INITDB_DATABASE: ellaura
+      MONGO_INITDB_DATABASE: aarogya
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
@@ -31,14 +31,14 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - ellaura-network
+      - aarogya-network
 
   # ── Backend API Server ──
   backend:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: ellaura-backend
+    container_name: aarogya-backend
     restart: unless-stopped
     ports:
       - "5000:5000"
@@ -68,7 +68,7 @@ services:
       mongodb:
         condition: service_healthy
     networks:
-      - ellaura-network
+      - aarogya-network
 
   # ── Frontend React App ──
   frontend:
@@ -77,21 +77,21 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: http://localhost:5000/api
-    container_name: ellaura-frontend
+    container_name: aarogya-frontend
     restart: unless-stopped
     ports:
       - "3002:80"
     depends_on:
       - backend
     networks:
-      - ellaura-network
+      - aarogya-network
 
   # ── ML Model Server (Python) ──
   ml-model:
     build:
       context: ./ml_model
       dockerfile: Dockerfile
-    container_name: ellaura-ml-model
+    container_name: aarogya-ml-model
     restart: unless-stopped
     ports:
       - "5001:5001"
@@ -101,14 +101,14 @@ services:
     depends_on:
       - backend
     networks:
-      - ellaura-network
+      - aarogya-network
 
 # ── Volumes ──
 volumes:
-  ellaura-mongo-data:
+  aarogya-mongo-data:
     driver: local
 
 # ── Networks ──
 networks:
-  ellaura-network:
+  aarogya-network:
     driver: bridge

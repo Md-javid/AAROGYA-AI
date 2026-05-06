@@ -72,8 +72,8 @@ app.use((err: any, req: Request, res: Response, next: any) => {
 // Start server
 const PORT = config.port;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT} in ${config.nodeEnv} mode`);
-    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+    console.log(`[START] Server running on port ${PORT} in ${config.nodeEnv} mode`);
+    console.log(`[INFO]  Health check: http://localhost:${PORT}/health`);
 });
 
 export default app;

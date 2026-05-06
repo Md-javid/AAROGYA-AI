@@ -70,7 +70,7 @@ const Alert: React.FC<{ type: 'error' | 'success'; msg: string }> = ({ type, msg
         border: `1.5px solid ${type === 'error' ? 'rgba(255,59,48,0.35)' : 'rgba(52,199,89,0.35)'}`,
         color: type === 'error' ? '#FF8080' : '#7AE28C'
     }}>
-        {type === 'success' ? <CheckCircle size={16} /> : '⚠️'} {msg}
+        {type === 'success' ? <CheckCircle size={16} /> : <Shield size={16} />} {msg}
     </div>
 );
 
@@ -274,7 +274,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
             localStorage.setItem('accessToken', data.accessToken);
             localStorage.setItem('refreshToken', data.refreshToken);
             localStorage.setItem('aarogya_user', JSON.stringify(data.user));
-            setSuccess('Welcome back! 🎉');
+            setSuccess('Welcome back!');
             setTimeout(() => onAuthSuccess(data.user, data.accessToken), 900);
         } catch (err: any) { setError(err.message || 'Login failed. Try again.'); }
         finally { setLoading(false); }
@@ -303,7 +303,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
             localStorage.setItem('accessToken', data.accessToken);
             localStorage.setItem('refreshToken', data.refreshToken);
             localStorage.setItem('aarogya_user', JSON.stringify(data.user));
-            setSuccess('Account created! Welcome to Aarogya AI! 🚀');
+            setSuccess('Account created! Welcome to Aarogya AI!');
             setTimeout(() => onAuthSuccess(data.user, data.accessToken), 1500);
         } catch (err: any) { setError(err.message || 'Registration failed. Try again.'); }
         finally { setLoading(false); }
@@ -313,7 +313,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
     const renderLogin = () => (
         <div className="animate-fadeIn">
             <div className="mb-7">
-                <h2 className="text-2xl font-black text-white mb-1">Welcome back 👋</h2>
+                <h2 className="text-2xl font-black text-white mb-1">Welcome back</h2>
                 <p className="text-white/45 text-sm">Continue your transformation journey</p>
             </div>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -514,7 +514,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
                     </div>
 
                     <p className="text-center mt-4 text-white/25 text-xs">
-                        🔒 End-to-end encrypted · Your data is never sold
+                        <Shield size={12} className="inline-block mr-1 text-white/40" /> End-to-end encrypted · Your data is never sold
                     </p>
                 </div>
             </div>

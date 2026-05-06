@@ -129,12 +129,12 @@ const STATIC_WORKOUTS = [
 ];
 
 const HOW_TO_STEPS = [
-  { icon: '🍽️', title: 'Scan Your Food', desc: 'Tap the orange Scan Food button at the bottom to photograph any meal — Gemini AI identifies it instantly.' },
-  { icon: '🎙️', title: 'Voice Log', desc: 'Say "I had dal chawal for lunch" and AI will log the meal with macros automatically.' },
-  { icon: '💪', title: 'Log Workouts', desc: 'Head to Train to see AI-generated workouts and YouTube tutorials for each exercise.' },
-  { icon: '🤖', title: 'Chat with Coach', desc: 'Tap the purple button (bottom-right) to ask your AI coach anything about fitness and nutrition.' },
-  { icon: '📈', title: 'Track Progress', desc: 'The Progress tab shows charts, badges, and your weekly health score.' },
-  { icon: '🗺️', title: '4-Week Roadmap', desc: 'Get a personalised 4-week programme that builds intensity week by week.' },
+  { icon: Camera, title: 'Scan Your Food', desc: 'Tap the orange Scan Food button at the bottom to photograph any meal — Gemini AI identifies it instantly.' },
+  { icon: Mic, title: 'Voice Log', desc: 'Say "I had dal chawal for lunch" and AI will log the meal with macros automatically.' },
+  { icon: Dumbbell, title: 'Log Workouts', desc: 'Head to Train to see AI-generated workouts and YouTube tutorials for each exercise.' },
+  { icon: Brain, title: 'Chat with Coach', desc: 'Tap the purple button (bottom-right) to ask your AI coach anything about fitness and nutrition.' },
+  { icon: TrendingUp, title: 'Track Progress', desc: 'The Progress tab shows charts, badges, and your weekly health score.' },
+  { icon: Target, title: '4-Week Roadmap', desc: 'Get a personalised 4-week programme that builds intensity week by week.' },
 ];
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onToggleDarkMode, onUpdateProfile, elderMode = false, onToggleElderMode }) => {
@@ -221,7 +221,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
 
   const hour = currentTime.getHours();
   const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
-  const greetingEmoji = hour < 12 ? '🌅' : hour < 17 ? '☀️' : '🌙';
+  const greetingIcon = hour < 12 ? Sun : hour < 17 ? ThermometerSun : Moon;
 
   const timeStr = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   const dateStr = currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -263,7 +263,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
       {/* ── XP Pop Animation ── */}
       {showXpPop && (
         <div className="fixed top-20 right-6 z-[200] animate-xpPop pointer-events-none">
-          <div className="xp-badge text-base font-black px-4 py-2">+XP 🎉</div>
+          <div className="xp-badge text-base font-black px-4 py-2">+XP</div>
         </div>
       )}
 
@@ -272,11 +272,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
         <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none">
           <div className="animate-fadeIn text-center px-10 py-8 rounded-[2.5rem]"
             style={{ background: 'rgba(8,12,28,0.92)', backdropFilter: 'blur(32px)', border: '1.5px solid rgba(155,107,255,0.4)', boxShadow: '0 0 60px rgba(155,107,255,0.4)' }}>
-            <div className="text-6xl mb-3">🏆</div>
+            <div className="text-5xl mb-3"><Award size={48} className="text-yellow-400 mx-auto" /></div>
             <h2 className="text-3xl font-black text-white mb-1">Level {level}!</h2>
             <p className="text-white/60 font-bold">You leveled up — keep going!</p>
             <div className="mt-3 flex justify-center gap-2">
-              {['🥇','⭐','🎯','🔥','💎'].map((e, i) => <span key={i} className="text-2xl">{e}</span>)}
+              {[Star, Award, Target, Flame, Sparkles].map((Icon, i) => <Icon key={i} size={20} className="text-yellow-400" />)}
             </div>
           </div>
         </div>
@@ -293,14 +293,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                   style={{ background: 'linear-gradient(135deg,#9B6BFF,#FF5FA0)' }}>
                   <Sparkles size={24} className="text-white" />
                 </div>
-                <h2 className="text-2xl font-black text-white mb-1">Welcome to Aarogya AI 👋</h2>
+                <h2 className="text-2xl font-black text-white mb-1">Welcome to Aarogya AI</h2>
                 <p className="text-white/50 text-sm">Here's a quick guide to get you started</p>
               </div>
               <div className="space-y-3 mb-6">
                 {HOW_TO_STEPS.map((s, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-2xl"
                     style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span className="text-2xl flex-shrink-0">{s.icon}</span>
+                    <span className="text-2xl flex-shrink-0"><s.icon size={20} className="text-violet-400" /></span>
                     <div>
                       <p className="text-white font-black text-sm">{s.title}</p>
                       <p className="text-white/50 text-xs leading-relaxed">{s.desc}</p>
@@ -312,7 +312,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                 onClick={() => { setShowGuide(false); localStorage.setItem('aarogya_guided', '1'); }}
                 className="w-full py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white transition-all hover:scale-105"
                 style={{ background: 'linear-gradient(135deg,#9B6BFF,#FF5FA0)' }}>
-                Let's Go! 🚀
+                Let's Go!
               </button>
             </div>
           </div>
@@ -347,7 +347,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
 
           {/* Streak */}
           <div className="streak-badge flex items-center gap-1 text-sm hidden sm:flex">
-            🔥 {streak}d
+            <Flame size={13} className="text-orange-500" /> {streak}d
           </div>
 
           {/* Nav Pills */}
@@ -472,11 +472,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                     </div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-2xl">{greetingEmoji}</span>
+                        <span className="text-2xl">{React.createElement(greetingIcon, { size: 20, className: 'text-saffron-500' })}</span>
                         <span className="text-saffron-500 text-[10px] font-black uppercase tracking-[0.4em]">{greeting}</span>
                       </div>
                       <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-2">
-                        Hey, <span className="text-transparent bg-clip-text bg-gradient-to-r from-saffron-500 to-orange-400">{user.name.split(' ')[0]}</span> 👋
+                        Hey, <span className="text-transparent bg-clip-text bg-gradient-to-r from-saffron-500 to-orange-400">{user.name.split(' ')[0]}</span>
                       </h1>
                       <p className={`text-sm font-medium mb-6 italic ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{user.motto || 'Striving for balance every day.'}</p>
 
@@ -519,7 +519,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                       </div>
                       <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${streak > 0 ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                         <Flame size={12} className={streak > 0 ? 'text-orange-500 fill-orange-500 animate-pulse' : ''} />
-                        {streak} Day Streak 🔥
+                        {streak} Day Streak
                       </div>
                     </div>
                   </div>
@@ -600,7 +600,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                         <div key={i} onClick={() => setWaterGlasses(i + 1)} className={`flex-1 h-2 rounded-full cursor-pointer transition-all ${i < waterGlasses ? 'bg-blue-400' : 'bg-slate-100 dark:bg-slate-800'}`} />
                       ))}
                     </div>
-                    <p className="text-[9px] text-slate-400 mt-2">{waterGlasses >= 8 ? '🎉 Goal reached!' : `${8 - waterGlasses} more to go`}</p>
+                    <p className="text-[9px] text-slate-400 mt-2">{waterGlasses >= 8 ? 'Goal reached!' : `${8 - waterGlasses} more to go`}</p>
                   </div>
 
                 </div>

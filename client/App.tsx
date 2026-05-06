@@ -4,6 +4,7 @@ import { UserProfile } from './types';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 import { syncFromBackend } from './services/storageService';
+import { Activity, Scan, Dumbbell, TrendingUp } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
    iOS 19 Liquid-Glass Aurora Background
@@ -72,7 +73,12 @@ const LoadingScreen: React.FC = () => {
           <div className="absolute inset-0 rounded-full animate-liquidPulse glow-purple"
             style={{ background: 'linear-gradient(135deg,rgba(155,107,255,0.35),rgba(255,95,160,0.25))', backdropFilter: 'blur(20px)', border: '1.5px solid rgba(255,255,255,0.25)' }} />
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-5xl select-none" role="img" aria-label="fitness">🏃</span>
+            <span className="text-5xl select-none" role="img" aria-label="fitness">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <path d="M20 4L36 20L20 36L4 20L20 4Z" fill="url(#grad)" opacity="0.9"/>
+                <defs><linearGradient id="grad" x1="4" y1="4" x2="36" y2="36"><stop stopColor="#9B6BFF"/><stop offset="1" stopColor="#FF5FA0"/></linearGradient></defs>
+              </svg>
+            </span>
           </div>
           <div className="absolute -inset-3 rounded-full border border-dashed border-purple-500/30 animate-spin"
             style={{ animationDuration: '8s' }} />
@@ -84,10 +90,15 @@ const LoadingScreen: React.FC = () => {
         </div>
         <p className="text-white/40 text-sm">Initializing{'.'.repeat(dots)}</p>
         <div className="flex gap-2 justify-center mt-6 flex-wrap px-4">
-          {['🤖 AI Coach', '🥗 Food Vision', '💪 Movement Track', '🔥 Streaks'].map((f, i) => (
-            <span key={f} className="glass-pill px-3 py-1 text-xs text-white/70 animate-fadeIn"
+          {[
+            { icon: Activity, label: 'AI Coach' },
+            { icon: Scan, label: 'Food Vision' },
+            { icon: Dumbbell, label: 'Movement Track' },
+            { icon: TrendingUp, label: 'Streaks' }
+          ].map((f, i) => (
+            <span key={f.label} className="glass-pill px-3 py-1 text-xs text-white/70 animate-fadeIn flex items-center gap-1.5"
               style={{ animationDelay: `${i * 150 + 200}ms`, animationFillMode: 'both' }}>
-              {f}
+              <f.icon size={12} /> {f.label}
             </span>
           ))}
         </div>

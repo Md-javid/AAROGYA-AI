@@ -9,12 +9,12 @@ let genAI: GoogleGenerativeAI | null = null;
 try {
     if (config.geminiApiKey) {
         genAI = new GoogleGenerativeAI(config.geminiApiKey);
-        console.log('✅ Gemini AI initialized successfully');
+        console.log('[OK]    Gemini AI initialized successfully');
     } else {
-        console.warn('⚠️  GEMINI_API_KEY not found. AI features will be disabled.');
+        console.warn('[WARN]  GEMINI_API_KEY not found. AI features will be disabled.');
     }
 } catch (error) {
-    console.error('❌ Failed to initialize Gemini AI:', error);
+    console.error('[ERROR] Failed to initialize Gemini AI:', error);
 }
 
 const getModel = (json = true): GenerativeModel => {
@@ -39,7 +39,7 @@ const withRetry = async <T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> =
             if (status !== 429) throw err;
             if (attempt === maxAttempts) break;
             const waitMs = attempt * 5000 + 2000;
-            console.warn(`⏳ Rate limited (429). Waiting ${Math.round(waitMs / 1000)}s before retry ${attempt + 1}/${maxAttempts}...`);
+            console.warn(`[RETRY] Rate limited (429). Waiting ${Math.round(waitMs / 1000)}s before retry ${attempt + 1}/${maxAttempts}...`);
             await new Promise(resolve => setTimeout(resolve, waitMs));
         }
     }

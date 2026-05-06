@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════
-# ELLAURA Server — Multi-Stage Docker Build
+# Aarogya AI Server — Multi-Stage Docker Build
 # Stage 1: Build TypeScript to JavaScript
 # Stage 2: Run production server
 # ═══════════════════════════════════════════════
@@ -30,9 +30,9 @@ RUN npm ci --prefer-offline --no-audit --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S ellaura && \
-    adduser -S ellaura -u 1001 -G ellaura
-USER ellaura
+RUN addgroup -g 1001 -S aarogya && \
+    adduser -S aarogya -u 1001 -G aarogya
+USER aarogya
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
