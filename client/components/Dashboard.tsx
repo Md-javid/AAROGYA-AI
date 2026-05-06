@@ -21,6 +21,7 @@ import FoodMarketplaceView from './FoodMarketplaceView';
 import MovementTracker from './MovementTracker';
 import FoodTracker from './FoodTracker';
 import RoadmapView from './RoadmapView';
+import WearablesView from './WearablesView';
 import { PieChart, Pie, Cell, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
 import {
   Utensils, Dumbbell, MessageCircle, Sun, Moon, Droplets, Flame,
@@ -29,7 +30,7 @@ import {
   Wind, ThermometerSun, Sparkles, Camera, Clock, ArrowRight,
   Heart, Activity, Target, Award, Plus, Minus,
   Brain, Coffee, Apple, BedDouble, BarChart3, RefreshCw, Star,
-  ChevronRight, Play, Bolt, MapPin, Users, Leaf
+  ChevronRight, Play, Bolt, MapPin, Users, Leaf, Watch
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -91,16 +92,66 @@ const RingProgress: React.FC<{ value: number; max: number; color: string; size?:
   );
 };
 
+const STATIC_WORKOUTS = [
+  { category: 'Warm Up', color: '#f97316', icon: '🔥',
+    exercises: [
+      { name: 'Jumping Jacks', sets: '3', reps: '30 sec', yt: 'jumping jacks warmup exercise tutorial' },
+      { name: 'Arm Circles', sets: '2', reps: '20 reps', yt: 'arm circles shoulder warmup' },
+      { name: 'Hip Rotations', sets: '2', reps: '20 sec each', yt: 'hip rotation warmup exercise' },
+      { name: 'Neck Rolls', sets: '1', reps: '30 sec', yt: 'neck roll stretch beginners' },
+    ]
+  },
+  { category: 'Strength', color: '#8b5cf6', icon: '💪',
+    exercises: [
+      { name: 'Push-ups', sets: '3', reps: '12', yt: 'push ups proper form tutorial' },
+      { name: 'Bodyweight Squats', sets: '3', reps: '15', yt: 'bodyweight squat perfect form' },
+      { name: 'Plank Hold', sets: '3', reps: '45 sec', yt: 'plank exercise benefits tutorial' },
+      { name: 'Lunges', sets: '3', reps: '10 each', yt: 'walking lunges exercise tutorial' },
+      { name: 'Glute Bridge', sets: '3', reps: '15', yt: 'glute bridge exercise benefits' },
+    ]
+  },
+  { category: 'Cardio', color: '#ef4444', icon: '🏃',
+    exercises: [
+      { name: 'Burpees', sets: '3', reps: '10', yt: 'burpees exercise tutorial beginners' },
+      { name: 'Mountain Climbers', sets: '3', reps: '30 sec', yt: 'mountain climbers cardio tutorial' },
+      { name: 'High Knees', sets: '3', reps: '30 sec', yt: 'high knees cardio workout' },
+      { name: 'Jump Rope', sets: '3', reps: '1 min', yt: 'jump rope cardio workout tutorial' },
+    ]
+  },
+  { category: 'Cool Down', color: '#10b981', icon: '🧘',
+    exercises: [
+      { name: "Child's Pose", sets: '1', reps: '60 sec', yt: "child's pose yoga stretch tutorial" },
+      { name: 'Cat-Cow Stretch', sets: '1', reps: '10 reps', yt: 'cat cow stretch yoga tutorial' },
+      { name: 'Seated Forward Fold', sets: '1', reps: '30 sec', yt: 'seated forward fold yoga stretch' },
+      { name: 'Legs Up the Wall', sets: '1', reps: '2 min', yt: 'legs up the wall yoga recovery' },
+    ]
+  },
+];
+
+const HOW_TO_STEPS = [
+  { icon: '🍽️', title: 'Scan Your Food', desc: 'Tap the orange Scan Food button at the bottom to photograph any meal — Gemini AI identifies it instantly.' },
+  { icon: '🎙️', title: 'Voice Log', desc: 'Say "I had dal chawal for lunch" and AI will log the meal with macros automatically.' },
+  { icon: '💪', title: 'Log Workouts', desc: 'Head to Train to see AI-generated workouts and YouTube tutorials for each exercise.' },
+  { icon: '🤖', title: 'Chat with Coach', desc: 'Tap the purple button (bottom-right) to ask your AI coach anything about fitness and nutrition.' },
+  { icon: '📈', title: 'Track Progress', desc: 'The Progress tab shows charts, badges, and your weekly health score.' },
+  { icon: '🗺️', title: '4-Week Roadmap', desc: 'Get a personalised 4-week programme that builds intensity week by week.' },
+];
+
 const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onToggleDarkMode, onUpdateProfile, elderMode = false, onToggleElderMode }) => {
   // XP / Gamification
   const [xp, setXp] = React.useState(() => parseInt(localStorage.getItem('aarogya_xp') || '0'));
   const [level, setLevel] = React.useState(() => Math.floor(xp / 500) + 1);
   const [showXpPop, setShowXpPop] = React.useState(false);
+  const [showLevelUp, setShowLevelUp] = React.useState(false);
+  const [showGuide, setShowGuide] = React.useState(() => !localStorage.getItem('aarogya_guided'));
   const awardXp = (pts: number) => {
     const newXp = xp + pts;
+    const oldLevel = Math.floor(xp / 500) + 1;
+    const newLevel = Math.floor(newXp / 500) + 1;
     setXp(newXp); localStorage.setItem('aarogya_xp', String(newXp));
-    setLevel(Math.floor(newXp / 500) + 1);
+    setLevel(newLevel);
     setShowXpPop(true); setTimeout(() => setShowXpPop(false), 2000);
+    if (newLevel > oldLevel) { setShowLevelUp(true); setTimeout(() => setShowLevelUp(false), 4000); }
   };
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -179,16 +230,35 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
     { id: 'overview', label: 'Home', icon: LayoutDashboard, color: '#9B6BFF' },
     { id: 'workout', label: 'Train', icon: Dumbbell, color: '#FF5FA0' },
     { id: 'roadmap', label: 'Roadmap', icon: Target, color: '#F59E0B' },
-    { id: 'diet', label: 'Nutrition', icon: Leaf, color: '#10B981' },
+    { id: 'food', label: 'Food Log', icon: Utensils, color: '#10B981' },
     { id: 'yoga', label: 'Wellness', icon: Lotus, color: '#8B5CF6' },
-    { id: 'chat', label: 'AI Coach', icon: MessageCircle, color: '#A855F7' },
     { id: 'progress', label: 'Progress', icon: TrendingUp, color: '#14B8A6' },
     { id: 'settings', label: 'Profile', icon: SettingsIcon, color: '#64748B' },
   ];
 
+  const featureButtons = [
+    { id: 'gym', label: 'Find Gyms', icon: MapPin, color: '#818cf8', glow: 'rgba(129,140,248,0.3)' },
+    { id: 'trainers', label: 'Trainers', icon: Users, color: '#a78bfa', glow: 'rgba(167,139,250,0.3)' },
+    { id: 'marketplace', label: 'Healthy Market', icon: ShoppingCart, color: '#34d399', glow: 'rgba(52,211,153,0.3)' },
+    { id: 'roadmap', label: '4-Week Plan', icon: Target, color: '#F59E0B', glow: 'rgba(245,158,11,0.3)' },
+    { id: 'yoga', label: 'Meditation', icon: Lotus, color: '#8B5CF6', glow: 'rgba(139,92,246,0.3)' },
+    { id: 'movement', label: 'Movement', icon: Activity, color: '#22d3ee', glow: 'rgba(34,211,238,0.3)' },
+    { id: 'wearables', label: 'Wearables', icon: Watch, color: '#A78BFA', glow: 'rgba(167,139,250,0.3)' },
+  ];
+
 
   return (
-    <div className="min-h-screen bg-transparent transition-colors relative font-sans">
+    <div className="min-h-screen transition-colors relative font-sans" style={{ background: isDarkMode ? '#06000F' : '#F2F4F8' }}>
+
+      {/* ── PLASMA AURORA BACKGROUND (matching login page) ── */}
+      {isDarkMode && (
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(145deg,#08001A 0%,#0D0528 50%,#06001A 100%)' }} />
+          <div className="absolute w-[60%] h-[60%] top-[-15%] left-[-10%] rounded-full" style={{ background: 'radial-gradient(circle,rgba(160,60,255,0.18) 0%,rgba(100,0,200,0.08) 50%,transparent 75%)', filter: 'blur(60px)', animation: 'float 12s ease-in-out infinite' }} />
+          <div className="absolute w-[50%] h-[50%] top-[20%] right-[-10%] rounded-full" style={{ background: 'radial-gradient(circle,rgba(200,80,255,0.14) 0%,rgba(130,30,220,0.06) 55%,transparent 75%)', filter: 'blur(60px)', animation: 'float 16s ease-in-out infinite reverse' }} />
+          <div className="absolute w-[45%] h-[45%] bottom-[-10%] left-[25%] rounded-full" style={{ background: 'radial-gradient(circle,rgba(120,40,240,0.12) 0%,rgba(80,10,180,0.06) 55%,transparent 75%)', filter: 'blur(60px)', animation: 'float 10s ease-in-out infinite' }} />
+        </div>
+      )}
 
       {/* ── XP Pop Animation ── */}
       {showXpPop && (
@@ -197,16 +267,68 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
         </div>
       )}
 
-      {/* ── TOP NAV ── */}
+      {/* ── LEVEL UP CELEBRATION ── */}
+      {showLevelUp && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none">
+          <div className="animate-fadeIn text-center px-10 py-8 rounded-[2.5rem]"
+            style={{ background: 'rgba(8,12,28,0.92)', backdropFilter: 'blur(32px)', border: '1.5px solid rgba(155,107,255,0.4)', boxShadow: '0 0 60px rgba(155,107,255,0.4)' }}>
+            <div className="text-6xl mb-3">🏆</div>
+            <h2 className="text-3xl font-black text-white mb-1">Level {level}!</h2>
+            <p className="text-white/60 font-bold">You leveled up — keep going!</p>
+            <div className="mt-3 flex justify-center gap-2">
+              {['🥇','⭐','🎯','🔥','💎'].map((e, i) => <span key={i} className="text-2xl">{e}</span>)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── HOW TO USE GUIDE (first-time) ── */}
+      {showGuide && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)' }}>
+          <div className="w-full max-w-lg rounded-[2.5rem] overflow-hidden"
+            style={{ background: 'rgba(8,12,28,0.97)', border: '1.5px solid rgba(255,255,255,0.12)', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}>
+            <div className="p-8">
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg,#9B6BFF,#FF5FA0)' }}>
+                  <Sparkles size={24} className="text-white" />
+                </div>
+                <h2 className="text-2xl font-black text-white mb-1">Welcome to Aarogya AI 👋</h2>
+                <p className="text-white/50 text-sm">Here's a quick guide to get you started</p>
+              </div>
+              <div className="space-y-3 mb-6">
+                {HOW_TO_STEPS.map((s, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-2xl"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <span className="text-2xl flex-shrink-0">{s.icon}</span>
+                    <div>
+                      <p className="text-white font-black text-sm">{s.title}</p>
+                      <p className="text-white/50 text-xs leading-relaxed">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => { setShowGuide(false); localStorage.setItem('aarogya_guided', '1'); }}
+                className="w-full py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg,#9B6BFF,#FF5FA0)' }}>
+                Let's Go! 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TOP NAV (glass) ── */}
       <nav className="fixed top-0 left-0 right-0 z-[100] w-full">
         <div style={isDarkMode
-          ? { background: 'rgba(8,12,28,0.85)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.10)' }
-          : { background: 'rgba(255,255,255,0.90)', backdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 1px 16px rgba(0,0,0,0.06)' }}
+          ? { background: 'rgba(8,12,28,0.70)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }
+          : { background: 'rgba(255,255,255,0.80)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', borderBottom: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 16px rgba(0,0,0,0.04)' }}
           className="px-4 md:px-6 py-3 flex items-center justify-between gap-3">
 
           <div className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0" onClick={() => setActiveTab('overview')}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
-              style={{ background: 'linear-gradient(135deg, #9B6BFF, #FF5FA0)' }}>
+              style={{ background: 'linear-gradient(135deg, #9B6BFF, #FF5FA0)', boxShadow: '0 0 20px rgba(155,107,255,0.4)' }}>
               <Zap size={16} className="text-white fill-white" />
             </div>
             <div>
@@ -240,10 +362,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                     : isDarkMode ? 'text-white/50 hover:text-white/80' : 'text-slate-400 hover:text-slate-700'
                     }`}
                   style={activeTab === item.id ? {
-                    background: `linear-gradient(135deg, ${item.color}30, ${item.color}20)`,
-                    border: `1px solid ${item.color}50`,
-                    boxShadow: `0 0 16px ${item.color}30`,
+                    background: isDarkMode ? `rgba(255,255,255,0.08)` : `${item.color}15`,
+                    border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : item.color + '40'}`,
+                    boxShadow: `0 0 16px ${item.color}25`,
                     color: item.color,
+                    backdropFilter: 'blur(12px)',
                   } : { background: 'transparent' }}
                 >
                   <item.icon size={13} style={activeTab === item.id ? { color: item.color } : {}} />
@@ -253,24 +376,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
             </div>
           </div>
 
-          {/* Right side: Controls + Avatar */}
+          {/* Right side: Avatar */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Elder Mode toggle */}
-            {onToggleElderMode && (
-              <button onClick={onToggleElderMode} title="Elder Mode (Large Text)"
-                className={`hidden sm:flex items-center gap-1 px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${elderMode ? 'text-white' : 'text-white/40 hover:text-white/70'
-                  }`}
-                style={elderMode ? { background: 'rgba(255,95,160,0.25)', border: '1px solid rgba(255,95,160,0.4)' } : {}}>
-                ♿ <span className="hidden md:inline">Elder</span>
-              </button>
-            )}
-            {/* Theme toggle */}
-            <button onClick={onToggleDarkMode}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-black/10 ${isDarkMode ? 'text-white/60 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
-              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-            {/* Avatar */}
-            <div className="w-9 h-9 rounded-xl overflow-hidden cursor-pointer hover:scale-110 transition-transform flex-shrink-0 border border-white/20"
+            <div className="w-9 h-9 rounded-xl overflow-hidden cursor-pointer hover:scale-110 transition-transform flex-shrink-0"
+              style={{ border: '1.5px solid rgba(255,255,255,0.2)' }}
               onClick={() => setActiveTab('settings')}>
               {user.avatar ? (
                 <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
@@ -283,9 +392,35 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
             </div>
           </div>
         </div>
+
+        {/* ═══ FEATURE QUICK-ACCESS BAR ═══ */}
+        <div style={isDarkMode
+          ? { background: 'rgba(8,12,28,0.50)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }
+          : { background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)', borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+          className="px-4 md:px-6 py-2 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 min-w-max mx-auto justify-center">
+            {featureButtons.map(fb => (
+              <button key={fb.id}
+                onClick={() => setActiveTab(fb.id as DashboardTab)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full transition-all hover:scale-105 active:scale-95 group"
+                style={activeTab === fb.id ? {
+                  background: isDarkMode ? `rgba(255,255,255,0.10)` : `${fb.color}15`,
+                  border: `1.5px solid ${fb.color}60`,
+                  boxShadow: `0 0 20px ${fb.glow}`,
+                  backdropFilter: 'blur(12px)',
+                } : {
+                  background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                  border: `1.5px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+                }}>
+                <fb.icon size={13} style={{ color: fb.color }} />
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: activeTab === fb.id ? fb.color : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}>{fb.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </nav>
 
-      <main className="min-h-screen pt-20 pb-24">
+      <main className="min-h-screen pt-[7.5rem] pb-24 relative z-10">
 
         {/* ── NEWS TICKER ── */}
         {news.length > 0 && (
@@ -316,9 +451,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                   {/* Hero Greeting card */}
-                  <div className={`lg:col-span-2 relative overflow-hidden rounded-[2.5rem] p-8 md:p-10 shadow-2xl border group ${isDarkMode
-                    ? 'bg-gradient-to-br from-obsidian-950 via-slate-900 to-indigo-950 text-white border-white/5'
-                    : 'bg-gradient-to-br from-violet-50 via-white to-indigo-50 text-slate-900 border-slate-200/80'}`}>
+                  <div className={`lg:col-span-2 relative overflow-hidden rounded-[2.5rem] p-8 md:p-10 shadow-2xl group`}
+                    style={isDarkMode ? {
+                      background: 'rgba(255,255,255,0.06)',
+                      backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+                      border: '1.5px solid rgba(255,255,255,0.12)',
+                      boxShadow: '0 8px 40px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.1) inset',
+                      color: 'white',
+                    } : {
+                      background: 'rgba(255,255,255,0.85)',
+                      backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                      border: '1.5px solid rgba(0,0,0,0.06)',
+                      boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+                      color: '#0F1117',
+                    }}>
                     {/* Ambient blobs */}
                     <div className="absolute inset-0 opacity-10">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-saffron-500 rounded-full blur-3xl" />
@@ -572,153 +718,137 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                   </div>
                 )}
 
-                {/* ── EXPLORE ── */}
-                <div className="glass-card rounded-[2.5rem] p-7 border border-white/20">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2 mb-4"><MapPin size={11} /> Explore</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {[
-                      { id: 'gym', label: 'Find Gyms', desc: 'Locate nearby gyms & studios', icon: MapPin, color: '#818cf8' },
-                      { id: 'trainers', label: 'Trainers', desc: 'Book certified personal trainers', icon: Users, color: '#a78bfa' },
-                      { id: 'marketplace', label: 'Healthy Market', desc: 'Order fresh meals from home chefs', icon: ShoppingCart, color: '#34d399' },
-                    ].map(item => (
-                      <button key={item.id} onClick={() => setActiveTab(item.id as any)}
-                        className="flex items-center gap-4 p-4 rounded-2xl border border-white/10 hover:border-white/20 hover:scale-[1.02] transition-all group text-left"
-                        style={{ background: `${item.color}10` }}>
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${item.color}20` }}>
-                          <item.icon size={16} style={{ color: item.color }} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-black text-slate-800 dark:text-white">{item.label}</p>
-                          <p className="text-[9px] text-slate-400 leading-tight mt-0.5 truncate">{item.desc}</p>
-                        </div>
-                        <ChevronRight size={13} className="text-slate-400 ml-auto flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Explore section is now in the top Feature Quick-Access Bar */}
               </div>
             )}
 
-            {/* ── SECONDARY TABS (kept accessible) ── */}
+            {/* ── ALL ADDITIONAL TABS ── */}
             {activeTab === 'movement' && <MovementTracker elderMode={elderMode} onXpEarned={awardXp} />}
             {activeTab === 'food' && <FoodTracker elderMode={elderMode} onXpEarned={awardXp} onOpenMealVision={() => setIsVisionOpen(true)} />}
             {activeTab === 'rituals' && <RitualsView user={user} isDarkMode={isDarkMode} />}
-
-            {/* ── PRIMARY TABS ── */}
             {activeTab === 'gym' && <GymLocatorView />}
             {activeTab === 'trainers' && <TrainerConnectView />}
             {activeTab === 'marketplace' && <FoodMarketplaceView />}
             {activeTab === 'roadmap' && <RoadmapView user={user} />}
-            {activeTab === 'rituals' && <RitualsView user={user} isDarkMode={isDarkMode} />}
-            {activeTab === 'movement' && <MovementTracker elderMode={elderMode} onXpEarned={awardXp} />}
-            {activeTab === 'food' && <FoodTracker elderMode={elderMode} onXpEarned={awardXp} onOpenMealVision={() => setIsVisionOpen(true)} />}
-            {activeTab === 'diet' && (
-              <div className="space-y-8 animate-slide-up">
-                <div className="bg-obsidian-950 dark:bg-white rounded-[3rem] p-10 md:p-12 text-white dark:text-obsidian-950 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-8 opacity-10"><Utensils size={200} /></div>
-                  <div className="text-center md:text-left space-y-3 relative z-10">
-                    <h3 className="text-3xl md:text-4xl font-black tracking-tight italic">Your Nutrition Plan</h3>
-                    <p className="text-obsidian-400 dark:text-obsidian-500 font-medium max-w-md">Balanced meals tailored to your body type, region, and health goals.</p>
-                  </div>
-                  <button onClick={() => setIsVisionOpen(true)} className="relative z-10 px-8 py-4 bg-saffron-500 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl glow-saffron group">
-                    <Camera size={18} className="group-hover:rotate-12 transition-transform" /> Scan Food
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {loading ? (
-                    <div className="col-span-2 flex flex-col items-center py-24 gap-6">
-                      <Loader2 className="animate-spin text-saffron-500" size={48} />
-                      <p className="font-black text-slate-400 uppercase tracking-[0.4em] text-[10px]">Building your nutrition plan...</p>
-                    </div>
-                  ) : dietPlan && ['breakfast', 'lunch', 'snack', 'dinner'].map((m, idx) => (
-                    <div key={m} className="glass-card p-8 rounded-[2.5rem] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 group hover:border-emerald-500/30" style={{ animationDelay: `${idx * 100}ms` }}>
-                      <div className="space-y-2 flex-1">
-                        <span className="inline-block px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest">{m}</span>
-                        <h4 className="text-xl font-black text-obsidian-950 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{(dietPlan as any)[m].dishName}</h4>
-                        <div className="flex gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                          <span className="flex items-center gap-1"><Flame size={10} className="text-orange-500" /> {(dietPlan as any)[m].calories} Kcal</span>
-                          <span className="flex items-center gap-1"><Zap size={10} className="text-indigo-500" /> {(dietPlan as any)[m].protein || 'Balanced'}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent((dietPlan as any)[m].dishName + ' recipe')}`} target="_blank" className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl text-slate-400 hover:text-red-500 transition-all hover:scale-110 border border-white/10"><Video size={20} /></a>
-                        <button onClick={() => setSelectedMeal({ meal: (dietPlan as any)[m], type: m })} className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl text-slate-400 hover:text-saffron-500 transition-all hover:scale-110 border border-white/10"><Maximize2 size={20} /></button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {activeTab === 'wearables' && <WearablesView />}
+            {activeTab === 'chat' && <Chat user={user} />}
             {activeTab === 'workout' && (
               <div className="space-y-8 animate-slide-up">
-                {loading ? (
-                  <div className="flex flex-col items-center py-24 gap-6">
-                    <Loader2 className="animate-spin text-saffron-500" size={48} />
-                    <p className="font-black text-slate-400 uppercase tracking-[0.4em] text-[10px]">Building your workout plan...</p>
-                  </div>
-                ) : workoutPlan && (
-                  <>
-                    <div className="bg-gradient-to-br from-indigo-950 to-indigo-900 rounded-[3rem] p-10 md:p-12 text-white flex flex-col md:flex-row items-center justify-between shadow-2xl border border-white/5 relative overflow-hidden">
-                      <div className="relative z-10 text-center md:text-left space-y-3">
-                        <h3 className="text-3xl md:text-4xl font-black italic tracking-tight">Your Workout Plan</h3>
-                        <div className="flex items-center justify-center md:justify-start gap-3">
-                          <span className="px-3 py-1 bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest">Focus: {workoutPlan.yogaPose}</span>
-                          <span className="px-3 py-1 bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest">Level: {workoutPlan.difficulty}</span>
-                        </div>
-                      </div>
-                      <button onClick={() => setIsWorkoutVisionOpen(true)} className="relative z-10 px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl backdrop-blur-md group mt-6 md:mt-0 border border-white/10">
-                        <Camera size={18} className="group-hover:rotate-12 transition-transform" /> Scan Form
-                      </button>
-                      <div className="absolute -left-10 -bottom-10 opacity-5"><Dumbbell size={300} /></div>
+                {/* Hero */}
+                <div className="relative overflow-hidden rounded-[2.5rem] p-8 md:p-10 text-white"
+                  style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.85),rgba(139,92,246,0.85))', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 24px 60px rgba(99,102,241,0.3)' }}>
+                  <div className="absolute inset-0 opacity-5"><Dumbbell className="absolute -right-6 -bottom-6" size={240} /></div>
+                  <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/60 mb-1 flex items-center gap-2"><Zap size={10} /> Today's Training</p>
+                      <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-2">Train Hard. Move Smart.</h2>
+                      <p className="text-white/70 text-sm">AI plan loads below · Scroll for workout library + YouTube guides</p>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {['warmup', 'mainWorkout', 'cooldown'].map((section, sIdx) => (
-                        <div key={section} className="space-y-4">
-                          <div className="flex items-center gap-3 pl-2">
-                            <div className="w-6 h-[1px] bg-slate-200 dark:bg-slate-700" />
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">{section === 'mainWorkout' ? 'Main Workout' : section}</h4>
-                          </div>
+                    <div className="flex gap-2 flex-wrap justify-center">
+                      <button onClick={() => setIsWorkoutVisionOpen(true)}
+                        className="px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-all"
+                        style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}>
+                        <Camera size={14} /> Scan Form
+                      </button>
+                      <button onClick={fetchPlans}
+                        className="px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-all"
+                        style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}>
+                        <RefreshCw size={14} /> Generate AI Plan
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Plan */}
+                {loading ? (
+                  <div className="flex flex-col items-center py-16 gap-4">
+                    <Loader2 className="animate-spin text-indigo-400" size={40} />
+                    <p className="font-black text-slate-400 uppercase tracking-[0.4em] text-[9px]">Generating your AI plan...</p>
+                  </div>
+                ) : workoutPlan ? (
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2"><Sparkles size={12} className="text-indigo-400" /> AI Plan · {workoutPlan.difficulty}</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                      {['warmup', 'mainWorkout', 'cooldown'].map((section) => (
+                        <div key={section} className="space-y-3">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] pl-1">{section === 'mainWorkout' ? 'Main Workout' : section}</p>
                           {(workoutPlan as any)[section].map((ex: any, idx: number) => (
-                            <div key={idx} className="glass-card p-6 rounded-[2rem] group hover:border-indigo-500/30 transition-all">
-                              <div className="flex justify-between items-start mb-3">
-                                <h5 className="font-black text-base text-obsidian-950 dark:text-white italic pr-3">{ex.name}</h5>
-                                <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise tutorial')}`} target="_blank" className="p-2 bg-slate-50 dark:bg-slate-900/40 rounded-xl text-slate-400 hover:text-red-500 transition-all hover:scale-110 border border-white/10 flex-shrink-0"><Video size={14} /></a>
+                            <div key={idx} className="glass-card p-5 rounded-[1.5rem] flex items-start gap-3 hover:border-indigo-500/30 transition-all">
+                              <div className="flex-1 min-w-0">
+                                <h5 className="font-black text-sm text-slate-800 dark:text-white">{ex.name}</h5>
+                                <p className="text-[10px] text-slate-400 mt-0.5">{ex.sets} × {ex.reps || ex.duration}</p>
                               </div>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed italic mb-4">"{ex.instruction}"</p>
-                              <div className="inline-block px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase rounded-xl tracking-widest">{ex.sets} Sets · {ex.reps} Reps</div>
+                              <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' tutorial')}`} target="_blank" rel="noreferrer"
+                                className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center bg-red-50 dark:bg-red-950/30 text-red-400 hover:text-red-500 hover:scale-110 transition-all">
+                                <Play size={12} fill="currentColor" />
+                              </a>
                             </div>
                           ))}
                         </div>
                       ))}
                     </div>
-                  </>
+                  </div>
+                ) : (
+                  <div className="glass-card rounded-[2rem] p-6 border border-indigo-500/20 text-center">
+                    <p className="text-slate-400 text-sm">Tap <strong className="text-indigo-400">Generate AI Plan</strong> above for a personalised workout.</p>
+                  </div>
                 )}
+
+                {/* Static Workout Library */}
+                <div>
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2 mb-4"><Play size={12} className="text-red-400" /> Workout Library + YouTube Guides</h3>
+                  <div className="space-y-6">
+                    {STATIC_WORKOUTS.map(cat => (
+                      <div key={cat.category}>
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-3 flex items-center gap-2" style={{ color: cat.color }}>
+                          {cat.icon} {cat.category}
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                          {cat.exercises.map(ex => (
+                            <div key={ex.name} className="glass-card p-4 rounded-[1.5rem] flex items-center gap-3 hover:scale-[1.02] transition-all"
+                              style={{ borderColor: `${cat.color}22` }}>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-black text-sm text-slate-800 dark:text-white truncate">{ex.name}</p>
+                                <p className="text-[10px] text-slate-400">{ex.sets} × {ex.reps}</p>
+                              </div>
+                              <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.yt)}`} target="_blank" rel="noreferrer"
+                                className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center hover:scale-110 transition-all"
+                                style={{ background: `${cat.color}22`, color: cat.color }}>
+                                <Play size={13} fill="currentColor" />
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
             {activeTab === 'yoga' && <DhyanaView user={user} isDarkMode={isDarkMode} />}
-            {activeTab === 'chat' && <Chat user={user} />}
             {activeTab === 'progress' && <ProgressView user={user} isDarkMode={isDarkMode} />}
             {activeTab === 'settings' && <SettingsView user={user} isDarkMode={isDarkMode} onToggleDarkMode={onToggleDarkMode} onReset={onReset} onUpdateProfile={onUpdateProfile} />}
           </div>
         </div>
       </main>
 
-      {/* ── FLOATING QUICK ACTION BAR ── */}
+      {/* ── FLOATING SCAN FOOD BUTTON (bottom-centre) ── */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90]">
-        <div className="glass rounded-full shadow-2xl px-4 py-3 flex items-center gap-2 border border-white/20">
-          {[
-            { icon: Camera, label: 'Scan', action: () => setIsVisionOpen(true), color: 'text-saffron-500' },
-            { icon: Mic, label: 'Voice', action: () => setIsVoiceLogOpen(true), color: 'text-violet-500' },
-            { icon: Dumbbell, label: 'Workout', action: () => { setLogType('workout'); setIsLogModalOpen(true); }, color: 'text-orange-500' },
-            { icon: Utensils, label: 'Meal', action: () => { setLogType('meal'); setIsLogModalOpen(true); }, color: 'text-emerald-500' },
-            { icon: isDarkMode ? Sun : Moon, label: isDarkMode ? 'Light' : 'Dark', action: onToggleDarkMode, color: 'text-indigo-500' },
-          ].map((btn, i) => (
-            <button key={i} onClick={btn.action} title={btn.label}
-              className={`w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 transition-all hover:scale-110 active:scale-95 ${btn.color}`}>
-              <btn.icon size={18} />
-            </button>
-          ))}
-        </div>
+        <button onClick={() => setIsVisionOpen(true)}
+          className="flex items-center gap-2.5 px-6 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all"
+          style={{ background: 'rgba(249,115,22,0.18)', backdropFilter: 'blur(24px)', border: '1.5px solid rgba(249,115,22,0.45)', boxShadow: '0 0 32px rgba(249,115,22,0.25)' }}>
+          <Camera size={18} className="text-orange-400" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Scan Food</span>
+        </button>
+      </div>
+
+      {/* ── FLOATING AI COACH BUTTON (bottom-right) ── */}
+      <div className="fixed bottom-6 right-6 z-[90]">
+        <button onClick={() => setActiveTab('chat')} title="AI Coach"
+          className="w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+          style={{ background: 'linear-gradient(135deg,#9B6BFF,#FF5FA0)', boxShadow: '0 0 36px rgba(155,107,255,0.5)' }}>
+          <MessageCircle size={22} className="text-white" />
+        </button>
       </div>
 
       <style>{`

@@ -11,6 +11,7 @@ export const config = {
     jwtExpire: process.env.JWT_EXPIRE || '7d',
     jwtRefreshExpire: process.env.JWT_REFRESH_EXPIRE || '30d',
     geminiApiKey: process.env.GEMINI_API_KEY || '',
+    openaiApiKey: process.env.OPENAI_API_KEY || '',
     corsOrigin: process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()) || ['http://localhost:5173'],
     rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User.js';
 import { OTP } from '../models/OTP.js';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { sendOTPEmail } from '../utils/email.js';
 
 // Generate 6-digit OTP
@@ -45,10 +45,13 @@ export const sendRegistrationOTP = async (req: Request, res: Response): Promise<
         // In production, uncomment this:
         // await sendOTPEmail(email, otpCode, 'registration');
 
+        // Log OTP to server console only (never expose in API response)
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`📧 [DEV] OTP for ${email}: ${otpCode}`);
+        }
+
         res.status(200).json({
             message: 'OTP sent successfully to your email',
-            // For development only - remove in production
-            otp: otpCode,
         });
     } catch (error: any) {
         console.error('Send OTP error:', error);
@@ -213,20 +216,32 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
 // Refresh access token
 export const refreshToken = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { refreshToken } = req.body;
+        const { refreshToken: token } = req.body;
 
-        if (!refreshToken) {
+        if (!token) {
             res.status(400).json({ error: 'Refresh token is required' });
             return;
         }
 
-        // Verify refresh token (implement JWT verification)
-        // For now, simplified version
-        const accessToken = generateAccessToken({ userId: 'temp', email: 'temp' });
+        // Verify the refresh token cryptographically
+        const decoded = verifyRefreshToken(token);
+
+        // Ensure the user still exists in the database
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            res.status(401).json({ error: 'User no longer exists' });
+            return;
+        }
+
+        // Generate a fresh access token with real user data
+        const accessToken = generateAccessToken({
+            userId: user._id.toString(),
+            email: user.email,
+        });
 
         res.json({ accessToken });
     } catch (error) {
         console.error('Refresh token error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(401).json({ error: 'Invalid or expired refresh token' });
     }
 };

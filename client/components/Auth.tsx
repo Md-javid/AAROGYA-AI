@@ -288,9 +288,8 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
             const res = await fetch(`${API_URL}/auth/send-otp`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
-            setSuccess(`OTP sent to ${email}!`);
+            setSuccess(`OTP sent to ${email}! Check your email.`);
             setMode('verify');
-            if (data.otp) { console.log('🔐 OTP:', data.otp); alert(`Dev OTP: ${data.otp}`); }
         } catch (err: any) { setError(err.message || 'Failed to send OTP'); }
         finally { setLoading(false); }
     };

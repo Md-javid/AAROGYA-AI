@@ -67,61 +67,78 @@ const VoiceLogModal: React.FC<VoiceLogModalProps> = ({ onClose, onLogged }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[80] flex items-center justify-center p-4 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-md p-10 relative overflow-hidden text-center shadow-2xl border border-slate-100 dark:border-slate-800">
-        <button onClick={onClose} className="absolute top-8 right-8 text-slate-400 hover:text-red-500 transition-colors"><X size={24} /></button>
-        
-        <div className="space-y-8">
-           <div className="space-y-2">
-              <h3 className="text-3xl font-black text-slate-800 dark:text-slate-100">Aarogya Vani</h3>
-              <p className="text-slate-500 text-sm font-medium">Log your journey with just your voice.</p>
-           </div>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 animate-fadeIn"
+      style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(20px)' }}>
+      <div className="w-full max-w-md rounded-[2.5rem] relative overflow-hidden text-center"
+        style={{ background: 'rgba(10,14,32,0.92)', backdropFilter: 'blur(40px)', border: '1.5px solid rgba(255,255,255,0.13)', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}>
+        <button onClick={onClose}
+          className="absolute top-6 right-6 w-9 h-9 rounded-xl flex items-center justify-center z-10 hover:scale-110 transition-all"
+          style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+          <X size={18} className="text-white/70" />
+        </button>
 
-           <div className="relative h-48 flex items-center justify-center">
-              {isRecording && <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 bg-orange-500/20 rounded-full animate-ping"></div>
-                <div className="absolute w-40 h-40 bg-orange-500/10 rounded-full animate-pulse"></div>
-              </div>}
-              
-              <button 
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={isProcessing}
-                className={`relative z-10 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-2xl transition-all ${isRecording ? 'bg-red-500 scale-110' : 'bg-orange-600 hover:scale-105'}`}
-              >
-                {isProcessing ? <Loader2 className="animate-spin" size={40} /> : <Mic size={40} />}
-              </button>
-           </div>
+        <div className="p-8 space-y-6">
+          <div>
+            <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg,#8b5cf6,#a855f7)' }}>
+              <Mic size={20} className="text-white" />
+            </div>
+            <h3 className="text-2xl font-black text-white">Voice Log</h3>
+            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mt-1">Speak to log meals or workouts</p>
+          </div>
 
-           <div className="min-h-[100px] flex flex-col items-center justify-center text-center">
-              {isRecording ? (
-                <p className="text-orange-600 font-black animate-pulse uppercase text-xs tracking-widest">Listening carefully...</p>
-              ) : isProcessing ? (
-                <div className="space-y-3">
-                  <p className="text-indigo-600 font-black uppercase text-xs tracking-widest flex items-center gap-2"><Sparkles size={14}/> AI Analyzing context...</p>
+          <div className="relative h-44 flex items-center justify-center">
+            {isRecording && (
+              <>
+                <div className="absolute w-32 h-32 rounded-full animate-ping" style={{ background: 'rgba(249,115,22,0.15)' }} />
+                <div className="absolute w-44 h-44 rounded-full animate-pulse" style={{ background: 'rgba(249,115,22,0.07)' }} />
+              </>
+            )}
+            <button
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isProcessing}
+              className="relative z-10 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-60"
+              style={isRecording
+                ? { background: 'linear-gradient(135deg,#ef4444,#dc2626)', boxShadow: '0 0 40px rgba(239,68,68,0.5)' }
+                : { background: 'linear-gradient(135deg,#f97316,#ea580c)', boxShadow: '0 0 40px rgba(249,115,22,0.4)' }}>
+              {isProcessing ? <Loader2 className="animate-spin" size={36} /> : <Mic size={36} />}
+            </button>
+          </div>
+
+          <div className="min-h-[90px] flex flex-col items-center justify-center">
+            {isRecording ? (
+              <p className="font-black uppercase text-[10px] tracking-widest text-orange-400 animate-pulse">Listening carefully...</p>
+            ) : isProcessing ? (
+              <p className="font-black uppercase text-[10px] tracking-widest text-indigo-400 flex items-center gap-2">
+                <Sparkles size={12} /> AI analysing your voice...
+              </p>
+            ) : result ? (
+              <div className="w-full p-5 rounded-2xl animate-fadeIn"
+                style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                <div className="flex items-center justify-center gap-2 text-emerald-400 mb-3">
+                  <CheckCircle size={18} />
+                  <span className="font-black text-xs uppercase tracking-wider">Auto-Logged!</span>
                 </div>
-              ) : result ? (
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-800 animate-fadeIn w-full">
-                  <div className="flex items-center justify-center gap-2 text-emerald-600 mb-2">
-                    <CheckCircle size={20} />
-                    <span className="font-black text-sm uppercase">Auto-Logged</span>
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: result.type === 'meal' ? 'rgba(249,115,22,0.2)' : 'rgba(99,102,241,0.2)' }}>
+                    {result.type === 'meal'
+                      ? <Utensils size={18} className="text-orange-400" />
+                      : <Zap size={18} className="text-indigo-400" />}
                   </div>
-                  <div className="flex items-center justify-center gap-4">
-                     <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
-                        {result.type === 'meal' ? <Utensils size={24} className="text-orange-500" /> : <Zap size={24} className="text-indigo-500" />}
-                     </div>
-                     <div className="text-left">
-                        <p className="font-bold text-slate-700 dark:text-slate-200">{result.items || result.workoutType}</p>
-                        <p className="text-xs text-slate-500">{result.calories || result.caloriesBurned} kcal accounted for.</p>
-                     </div>
+                  <div className="text-left">
+                    <p className="font-black text-white text-sm">{result.items || result.workoutType}</p>
+                    <p className="text-white/40 text-xs">{result.calories || result.caloriesBurned} kcal accounted for</p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                   <p className="text-slate-400 text-sm font-medium italic">"I had a healthy thali for lunch with rotis..."</p>
-                   <p className="text-slate-300 text-[10px] uppercase font-black">Tap to start speaking</p>
-                </div>
-              )}
-           </div>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <p className="text-white/30 text-sm italic">"I had dal chawal for lunch..."</p>
+                <p className="text-white/20 text-[10px] uppercase font-black">Tap the mic to start</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -39,96 +39,101 @@ const MealVisionModal: React.FC<MealVisionModalProps> = ({ onClose, onLogged }) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-xl max-h-[90vh] overflow-y-auto scrollbar-hide border border-slate-100 dark:border-slate-800 shadow-2xl relative">
-        <button onClick={onClose} className="absolute top-8 right-8 text-slate-400 hover:text-red-500 transition-colors z-10"><X size={24} /></button>
-        
-        <div className="p-10 space-y-8">
-           <div className="text-center">
-              <h3 className="text-3xl font-black text-slate-800 dark:text-slate-100 flex items-center justify-center gap-3">
-                <Sparkles className="text-orange-500" /> Aarogya Drishti
-              </h3>
-              <p className="text-slate-500 font-medium mt-1 uppercase text-[10px] tracking-widest">AI Augmented Nutrition Scanner</p>
-           </div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fadeIn"
+      style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(20px)' }}>
+      <div className="w-full max-w-xl max-h-[92vh] overflow-y-auto scrollbar-hide relative rounded-[2.5rem]"
+        style={{ background: 'rgba(10,14,32,0.92)', backdropFilter: 'blur(40px)', border: '1.5px solid rgba(255,255,255,0.13)', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}>
+        <button onClick={onClose}
+          className="absolute top-6 right-6 w-9 h-9 rounded-xl flex items-center justify-center z-10 hover:scale-110 transition-all"
+          style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+          <X size={18} className="text-white/70" />
+        </button>
 
-           {!image ? (
-             <div 
-               onClick={() => fileInputRef.current?.click()}
-               className="border-4 border-dashed border-slate-100 dark:border-slate-800 rounded-[2.5rem] h-64 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
-             >
-                <div className="p-5 bg-orange-100 dark:bg-orange-900/30 rounded-full text-orange-600 group-hover:scale-110 transition-transform">
-                   <Camera size={40} />
-                </div>
-                <p className="mt-4 font-bold text-slate-500">Tap to snap or upload meal</p>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-             </div>
-           ) : (
-             <div className="space-y-6">
-                <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800">
-                   <img src={image} alt="Meal" className="w-full h-auto object-cover max-h-80" />
-                   {isAnalyzing && (
-                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-4">
-                           <Loader2 className="animate-spin text-white" size={48} />
-                           <p className="text-white font-black uppercase text-xs tracking-[0.2em] animate-pulse">Scanning Prana...</p>
-                        </div>
-                     </div>
-                   )}
-                </div>
-                
-                {!result ? (
-                  <button 
-                    onClick={handleAnalyze}
-                    disabled={isAnalyzing}
-                    className="w-full py-5 bg-orange-600 text-white rounded-2xl font-black uppercase text-sm tracking-widest shadow-xl hover:bg-orange-700 transition-all flex items-center justify-center gap-3"
-                  >
-                    Analyze Sattvic Profile <ChevronRight size={20} />
-                  </button>
-                ) : (
-                  <div className="space-y-6 animate-tabTransition">
-                    <div className="grid grid-cols-3 gap-4">
-                       <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-2xl text-center">
-                          <Flame className="mx-auto text-orange-500 mb-1" size={20} />
-                          <span className="block text-lg font-black">{result.calories}</span>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">Kcal</span>
-                       </div>
-                       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl text-center">
-                          <Zap className="mx-auto text-blue-500 mb-1" size={20} />
-                          <span className="block text-lg font-black">{result.macronutrients.protein}</span>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">Protein</span>
-                       </div>
-                       <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl text-center">
-                          <Heart className="mx-auto text-emerald-500 mb-1" size={20} />
-                          <span className="block text-lg font-black">{result.healthScore}/100</span>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">Score</span>
-                       </div>
-                    </div>
-                    
-                    <div className="bg-slate-900 rounded-[2rem] p-6 text-white border border-white/5">
-                       <h4 className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                          <Sparkles size={14} /> Ayurvedic Insight
-                       </h4>
-                       <p className="italic font-medium text-slate-300 leading-relaxed">"{result.ayurvedicInsight}"</p>
-                    </div>
+        <div className="p-8 space-y-6">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg,#f97316,#ef4444)' }}>
+              <Camera size={20} className="text-white" />
+            </div>
+            <h3 className="text-2xl font-black text-white flex items-center justify-center gap-2">
+              <Sparkles size={18} className="text-orange-400" /> Meal Vision
+            </h3>
+            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mt-1">AI Nutrition Scanner</p>
+          </div>
 
-                    <div className="flex gap-4">
-                       <button 
-                         onClick={() => onLogged(result)} 
-                         className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2"
-                       >
-                          <CheckCircle2 size={18} /> Add to Diary
-                       </button>
-                       <button 
-                         onClick={() => { setImage(null); setResult(null); }}
-                         className="px-6 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl font-black text-xs"
-                       >
-                          Retake
-                       </button>
+          {!image ? (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-[2rem] h-56 flex flex-col items-center justify-center cursor-pointer hover:scale-[1.01] transition-all group"
+              style={{ background: 'rgba(249,115,22,0.08)', border: '2px dashed rgba(249,115,22,0.35)' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+                style={{ background: 'rgba(249,115,22,0.18)' }}>
+                <Camera size={28} className="text-orange-400" />
+              </div>
+              <p className="font-black text-white/60 text-sm">Tap to snap or upload meal</p>
+              <p className="text-white/30 text-xs mt-1">JPG, PNG, WEBP supported</p>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="relative rounded-[2rem] overflow-hidden" style={{ border: '1.5px solid rgba(255,255,255,0.1)' }}>
+                <img src={image} alt="Meal" className="w-full h-auto object-cover max-h-72" />
+                {isAnalyzing && (
+                  <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)' }}>
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="animate-spin text-orange-400" size={40} />
+                      <p className="text-white font-black uppercase text-[9px] tracking-[0.3em] animate-pulse">Analysing Nutrition...</p>
                     </div>
                   </div>
                 )}
-             </div>
-           )}
+              </div>
+
+              {!result ? (
+                <button onClick={handleAnalyze} disabled={isAnalyzing}
+                  className="w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg,#f97316,#ef4444)' }}>
+                  <Sparkles size={14} /> Analyse Meal <ChevronRight size={14} />
+                </button>
+              ) : (
+                <div className="space-y-4 animate-fadeIn">
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { icon: <Flame size={16} />, value: result.calories, label: 'Kcal', color: '#f97316' },
+                      { icon: <Zap size={16} />, value: result.macronutrients.protein, label: 'Protein', color: '#6366f1' },
+                      { icon: <Heart size={16} />, value: `${result.healthScore}/100`, label: 'Score', color: '#10b981' },
+                    ].map((s, i) => (
+                      <div key={i} className="p-4 rounded-2xl text-center"
+                        style={{ background: `${s.color}18`, border: `1px solid ${s.color}30` }}>
+                        <div className="flex justify-center mb-1" style={{ color: s.color }}>{s.icon}</div>
+                        <span className="block text-lg font-black text-white">{s.value}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: `${s.color}99` }}>{s.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(249,115,22,0.2)' }}>
+                    <h4 className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <Sparkles size={12} /> Ayurvedic Insight
+                    </h4>
+                    <p className="italic text-white/70 text-sm leading-relaxed">"{result.ayurvedicInsight}"</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button onClick={() => onLogged(result)}
+                      className="flex-1 py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest text-white flex items-center justify-center gap-2 hover:scale-105 transition-all"
+                      style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}>
+                      <CheckCircle2 size={14} /> Add to Diary
+                    </button>
+                    <button onClick={() => { setImage(null); setResult(null); }}
+                      className="px-5 py-3.5 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all hover:scale-105"
+                      style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
+                      Retake
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

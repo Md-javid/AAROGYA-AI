@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
+import { Buffer } from 'buffer';
 import { config } from '../config/env.js';
 import { UserContext, CoachTone } from '../utils/contextAnalyzer.js';
 
@@ -8,32 +9,25 @@ let genAI: GoogleGenerativeAI | null = null;
 try {
     if (config.geminiApiKey) {
         genAI = new GoogleGenerativeAI(config.geminiApiKey);
-        console.log('✅ Google Generative AI initialized successfully');
+        console.log('✅ Gemini AI initialized successfully');
     } else {
         console.warn('⚠️  GEMINI_API_KEY not found. AI features will be disabled.');
     }
 } catch (error) {
-    console.error('❌ Failed to initialize Google Generative AI:', error);
+    console.error('❌ Failed to initialize Gemini AI:', error);
 }
+
+const getModel = (json = true): GenerativeModel => {
+    if (!genAI) throw new Error('AI service not initialized. Please configure GEMINI_API_KEY.');
+    return genAI.getGenerativeModel({
+        model: 'gemini-2.0-flash',
+        generationConfig: json ? { responseMimeType: 'application/json' } : {},
+    });
+};
 
 export const isApiKeyAvailable = () => !!genAI;
 
-// ─── Shared configs ────────────────────────────────────────────
-const safetySettings = [
-    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-];
-
-const generationConfig = {
-    temperature: 0.7,
-    topP: 0.95,
-    topK: 40,
-    maxOutputTokens: 8192,
-};
-
 // ─── Auto-retry on 429 (rate limit) ────────────────────────────
-// Extracts the retryDelay from the API error response and waits exactly
-// that long before retrying — up to 3 attempts total.
 const withRetry = async <T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> => {
     let lastError: any;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -41,21 +35,10 @@ const withRetry = async <T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> =
             return await fn();
         } catch (err: any) {
             lastError = err;
-            const status = err?.status ?? err?.statusCode;
-            if (status !== 429) throw err; // only retry on rate limit
+            const status = err?.status ?? err?.statusCode ?? err?.httpStatusCode;
+            if (status !== 429) throw err;
             if (attempt === maxAttempts) break;
-
-            // Parse retryDelay from error details (Google sends e.g. "47s")
-            let waitMs = attempt * 20_000; // fallback: 20s, 40s
-            try {
-                const retryInfo = err?.errorDetails?.find((d: any) =>
-                    d['@type']?.includes('RetryInfo'));
-                if (retryInfo?.retryDelay) {
-                    const secs = parseFloat(retryInfo.retryDelay.replace('s', ''));
-                    if (!isNaN(secs)) waitMs = secs * 1000 + 2000; // +2s buffer
-                }
-            } catch { /* ignore parse errors */ }
-
+            const waitMs = attempt * 5000 + 2000;
             console.warn(`⏳ Rate limited (429). Waiting ${Math.round(waitMs / 1000)}s before retry ${attempt + 1}/${maxAttempts}...`);
             await new Promise(resolve => setTimeout(resolve, waitMs));
         }
@@ -63,10 +46,24 @@ const withRetry = async <T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> =
     throw lastError;
 };
 
+// ─── Gemini text helper ─────────────────────────────────────────
+const geminiJSON = async (prompt: string): Promise<any> => {
+    const model = getModel(true);
+    const result = await withRetry(() => model.generateContent(prompt));
+    const text = result.response.text().trim();
+    // Strip markdown fences if present
+    const clean = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    return JSON.parse(clean);
+};
+
+const geminiText = async (system: string, user: string): Promise<string> => {
+    const model = getModel(false);
+    const combined = `${system}\n\nUser message: ${user}`;
+    const result = await withRetry(() => model.generateContent(combined));
+    return result.response.text().trim();
+};
 
 // ─── Tone Templates ────────────────────────────────────────────
-// These define HOW the AI should speak based on what the user's week looked like.
-
 const TONE_INSTRUCTIONS: Record<CoachTone, string> = {
     encouraging: `
 TONE — ENCOURAGING:
@@ -96,8 +93,6 @@ Language style: "You're on fire 🔥 — let's push it even further."`,
 };
 
 // ─── Context Block Builder ─────────────────────────────────────
-// Injected into every prompt so Gemini knows what's actually happening in the user's life.
-
 const buildContextBlock = (ctx: UserContext): string => `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 USER'S LAST 7 DAYS — REAL DATA:
@@ -115,17 +110,9 @@ ${TONE_INSTRUCTIONS[ctx.tone]}
 `.trim();
 
 // ─── Diet Plan ─────────────────────────────────────────────────
-
 export const generateDietPlan = async (userProfile: any, ctx?: UserContext): Promise<any> => {
     if (!genAI) throw new Error('AI service not initialized. Please configure GEMINI_API_KEY.');
 
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-lite',
-        generationConfig: { ...generationConfig, responseMimeType: 'application/json' },
-        safetySettings,
-    });
-
-    // Context-driven diet adjustments
     const dietAdjustments = ctx ? buildDietAdjustments(ctx) : '';
     const contextBlock = ctx ? buildContextBlock(ctx) : '';
 
@@ -145,7 +132,7 @@ ${dietAdjustments}
 
 INSTRUCTIONS:
 1. Generate a 1-day personalized Indian meal plan
-2. Each meal must include an "coachNote" field — a 1-sentence note that references the user's actual week (e.g. if low calories detected, suggest calorie-dense meals; if stressed, suggest magnesium-rich foods)
+2. Each meal must include an "coachNote" field — a 1-sentence note that references the user's actual week
 3. The "hydrationTip" must reference the user's actual water intake if context is available
 
 Return JSON:
@@ -156,28 +143,20 @@ Return JSON:
     "ingredients": [], "instructions": [],
     "coachNote": "..."
   },
-  "lunch":   { same structure },
-  "snack":   { same structure },
-  "dinner":  { same structure },
+  "lunch": { "dishName": "...", "calories": 400, "protein": "20g", "prepTime": "...", "ingredients": [], "instructions": [], "coachNote": "..." },
+  "snack": { "dishName": "...", "calories": 200, "protein": "5g", "prepTime": "...", "ingredients": [], "instructions": [], "coachNote": "..." },
+  "dinner": { "dishName": "...", "calories": 350, "protein": "15g", "prepTime": "...", "ingredients": [], "instructions": [], "coachNote": "..." },
   "hydrationTip": "...",
   "regionalSpecialty": "...",
   "weeklyInsight": "One sentence about what this diet plan addresses from the user's recent patterns"
 }`;
 
-    const result = await withRetry(() => model.generateContent(prompt));
-    return JSON.parse(result.response.text());
+    return geminiJSON(prompt);
 };
 
 // ─── Workout Plan ──────────────────────────────────────────────
-
 export const generateWorkoutPlan = async (userProfile: any, ctx?: UserContext): Promise<any> => {
     if (!genAI) throw new Error('AI service not initialized. Please configure GEMINI_API_KEY.');
-
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-lite',
-        generationConfig: { ...generationConfig, responseMimeType: 'application/json' },
-        safetySettings,
-    });
 
     const workoutAdjustments = ctx ? buildWorkoutAdjustments(ctx) : '';
     const contextBlock = ctx ? buildContextBlock(ctx) : '';
@@ -212,20 +191,12 @@ Return JSON:
   "recoveryTip": "Specific tip based on their sleep/stress data this week"
 }`;
 
-    const result = await withRetry(() => model.generateContent(prompt));
-    return JSON.parse(result.response.text());
+    return geminiJSON(prompt);
 };
 
 // ─── Chat Coach ────────────────────────────────────────────────
-
 export const chatWithCoach = async (message: string, userProfile: any, ctx?: UserContext): Promise<string> => {
     if (!genAI) throw new Error('AI service not initialized. Please configure GEMINI_API_KEY.');
-
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-lite',
-        generationConfig,
-        safetySettings,
-    });
 
     const contextBlock = ctx ? buildContextBlock(ctx) : '';
 
@@ -247,21 +218,13 @@ RULES:
 4. Keep responses conversational, warm, and under 200 words unless detail is specifically requested
 5. Be culturally aware — reference Indian food, festivals, seasons where relevant`;
 
-    const fullPrompt = `${systemPrompt}\n\nUser says: ${message}`;
-    const result = await withRetry(() => model.generateContent(fullPrompt));
-    return result.response.text() || "I'm here to help! Could you please rephrase your question?";
+    const reply = await geminiText(systemPrompt, message);
+    return reply || "I'm here to help! Could you please rephrase your question?";
 };
 
 // ─── Meal Image Analysis ───────────────────────────────────────
-
 export const analyzeMealImage = async (base64: string, userProfile?: any): Promise<any> => {
     if (!genAI) throw new Error('AI service not initialized. Please configure GEMINI_API_KEY.');
-
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-lite',
-        generationConfig: { ...generationConfig, responseMimeType: 'application/json' },
-        safetySettings,
-    });
 
     const wellnessType = userProfile?.dosha || 'Balanced';
 
@@ -273,47 +236,63 @@ Return JSON:
   "calories": 450,
   "macronutrients": { "protein": "20g", "carbs": "60g", "fats": "15g" },
   "ayurvedicInsight": "Wellness insight for ${wellnessType} profile",
-  "wellnessCompatibility": "Great Choice" | "Decent Choice" | "Avoid This",
+  "wellnessCompatibility": "Great Choice",
   "healthScore": 8,
   "improvementTip": "One simple way to make this meal healthier"
 }`;
 
-    const imagePart = { inlineData: { data: base64, mimeType: 'image/jpeg' as const } };
-    const result = await withRetry(() => model.generateContent([prompt, imagePart]));
-    return JSON.parse(result.response.text());
+    // Strip data URI prefix if present
+    const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+
+    const model = getModel(true);
+    const result = await withRetry(() => model.generateContent([
+        { text: prompt },
+        { inlineData: { mimeType: 'image/jpeg', data: base64Data } }
+    ]));
+
+    const text = result.response.text().trim();
+    const clean = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    return JSON.parse(clean);
 };
 
 // ─── Voice Log ─────────────────────────────────────────────────
-
 export const processVoiceLog = async (base64: string, mimeType: string): Promise<any> => {
     if (!genAI) throw new Error('AI service not initialized. Please configure GEMINI_API_KEY.');
 
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-lite',
-        generationConfig: { ...generationConfig, responseMimeType: 'application/json' },
-        safetySettings,
-    });
+    try {
+        const base64Data = base64.replace(/^data:audio\/\w+;base64,/, '');
+        let safeMimeType = mimeType;
+        if (!safeMimeType || safeMimeType === 'audio/webm;codecs=opus') safeMimeType = 'audio/webm';
 
-    const prompt = `Analyze this voice log and extract fitness/nutrition information.
-Return JSON:
+        const prompt = `Listen to this audio recording in which a user is logging a fitness or nutrition activity.
+Extract the relevant details and return ONLY JSON:
 {
-  "type": "meal" | "workout",
-  "mealType": "breakfast/lunch/dinner/snack (if meal)",
-  "items": "Description of food items (if meal)",
+  "type": "meal" or "workout",
+  "mealType": "breakfast/lunch/dinner/snack (if meal, else null)",
+  "items": "Description of food items (if meal, else null)",
   "calories": 500,
-  "workoutType": "cardio/strength/yoga (if workout)",
+  "workoutType": "cardio/strength/yoga (if workout, else null)",
   "duration": 30,
   "intensity": "low/medium/high",
   "caloriesBurned": 200
 }`;
 
-    const audioPart = { inlineData: { data: base64, mimeType } };
-    const result = await withRetry(() => model.generateContent([prompt, audioPart]));
-    return JSON.parse(result.response.text());
+        const model = getModel(true);
+        const result = await withRetry(() => model.generateContent([
+            { text: prompt },
+            { inlineData: { mimeType: safeMimeType, data: base64Data } }
+        ]));
+
+        const text = result.response.text().trim();
+        const clean = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+        return JSON.parse(clean);
+    } catch (e) {
+        console.error('Error in voice log:', e);
+        throw e;
+    }
 };
 
 // ─── Adjustment Helpers ────────────────────────────────────────
-
 function buildDietAdjustments(ctx: UserContext): string {
     const lines: string[] = [];
 
@@ -365,20 +344,12 @@ function buildWorkoutAdjustments(ctx: UserContext): string {
 }
 
 // ─── 4-Week Roadmap Generator ──────────────────────────────────
-
 export const generateFourWeekRoadmap = async (
     userProfile: any,
     weekDates: Array<{ start: string; end: string }>
 ): Promise<any> => {
     if (!genAI) throw new Error('AI service not initialized. Please configure GEMINI_API_KEY.');
 
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-lite',
-        generationConfig: { ...generationConfig, responseMimeType: 'application/json', maxOutputTokens: 16384 },
-        safetySettings,
-    });
-
-    // Map wellness personality to training philosophy
     const wellnessProfiles: Record<string, string> = {
         Vata: 'Vata type: natural tendency toward inconsistency — needs routine, warm-up emphasis, and restorative sessions. Avoid overtraining. Best exercises: yoga, swimming, pilates, gentle strength.',
         Pitta: 'Pitta type: competitive and intense — needs moderation, cooling exercises, structured rest. Avoid burnout. Best exercises: strength training, moderate cardio, martial arts.',
@@ -387,7 +358,7 @@ export const generateFourWeekRoadmap = async (
     const wellnessNote = wellnessProfiles[userProfile.dosha] || 'Balanced wellness profile — standard progressive approach.';
 
     const injuryNote = userProfile.hasInjuries
-        ? `CRITICAL: User has injuries — ${userProfile.injuries}. Modify ALL exercises to avoid aggravating this. Substitute impact exercises with low-impact alternatives.`
+        ? `CRITICAL: User has injuries — ${userProfile.injuries}. Modify ALL exercises to avoid aggravating this.`
         : 'No injuries — full exercise range available.';
 
     const prompt = `You are an elite Indian fitness coach designing a structured 4-week transformation plan.
@@ -404,32 +375,25 @@ WELLNESS PERSONALITY GUIDANCE: ${wellnessNote}
 INJURY STATUS: ${injuryNote}
 
 WEEK DATE RANGES:
-- Week 1 (Foundation):           ${weekDates[0].start} to ${weekDates[0].end}
-- Week 2 (Progressive Overload): ${weekDates[1].start} to ${weekDates[1].end}
-- Week 3 (Optimization):         ${weekDates[2].start} to ${weekDates[2].end}
-- Week 4 (Peak Conditioning):    ${weekDates[3].start} to ${weekDates[3].end}
+- Week 1: ${weekDates[0].start} to ${weekDates[0].end}
+- Week 2: ${weekDates[1].start} to ${weekDates[1].end}
+- Week 3: ${weekDates[2].start} to ${weekDates[2].end}
+- Week 4: ${weekDates[3].start} to ${weekDates[3].end}
 
 DESIGN RULES:
 1. Each week MUST be more challenging than the previous
-2. Week 1: 3 workout days, lower intensity, habit-building focus
-3. Week 2: 4 workout days, introduce progressive overload (increase sets/weight)
-4. Week 3: 4-5 workout days, optimize timing, refine form, increase intensity
-5. Week 4: 5 workout days, peak effort — use all training principles learned
-6. Include 2 rest/recovery days per week minimum
-7. Calorie and protein targets must increase across weeks for muscle building goals, decrease for weight loss
-8. All exercises must be home-friendly (no gym equipment required unless specified)
-9. Include Indian food in diet guidelines (dal, sabzi, roti, rice, paneer, etc.)
-10. Each exercise needs clear instructions a beginner can follow
+2. All exercises must be home-friendly
+3. Include Indian food in diet guidelines
 
-Return ONLY this JSON (no markdown, no commentary):
+Return ONLY this JSON:
 {
-  "roadmapTitle": "Your 4-Week [Goal] Transformation",
-  "overview": "2-3 sentence overview of the full program",
+  "roadmapTitle": "Your 4-Week Transformation",
+  "overview": "...",
   "weeks": [
     {
       "weekNumber": 1,
       "theme": "Foundation",
-      "philosophy": "1 sentence on the week's approach",
+      "philosophy": "...",
       "startDate": "${weekDates[0].start}",
       "endDate": "${weekDates[0].end}",
       "weeklyTargets": {
@@ -443,75 +407,36 @@ Return ONLY this JSON (no markdown, no commentary):
         {
           "day": "Monday",
           "type": "Strength",
-          "sessionName": "Full Body Foundation",
+          "sessionName": "...",
           "durationMinutes": 35,
           "estimatedCaloriesBurn": 180,
           "exercises": [
-            { "name": "Squats", "sets": "3", "reps": "12", "rest": "60s", "instruction": "Stand feet shoulder-width...", "coachNote": "Week 1 — focus on form, not speed" }
+            { "name": "Squats", "sets": "3", "reps": "12", "rest": "60s", "instruction": "...", "coachNote": "..." }
           ]
-        },
-        {
-          "day": "Tuesday",
-          "type": "Rest",
-          "sessionName": "Active Recovery",
-          "durationMinutes": 0,
-          "estimatedCaloriesBurn": 0,
-          "exercises": [],
-          "restActivity": "10-minute morning walk or light stretching"
         }
       ],
       "dietGuidelines": {
-        "strategy": "Caloric maintenance with emphasis on whole foods",
+        "strategy": "...",
         "calorieTarget": 1800,
         "proteinTarget": "80g",
-        "focusFoods": ["Dal", "Paneer", "Oats", "Banana"],
-        "avoidFoods": ["Fried snacks", "Packaged foods"],
-        "mealTiming": "Breakfast 7am, Lunch 1pm, Snack 4pm, Dinner 7pm",
-        "hydrationTip": "Start each morning with 2 glasses of warm water",
-        "sampleMeal": "Oats upma for breakfast, Dal rice for lunch, Paneer salad for dinner"
+        "focusFoods": ["Dal", "Paneer"],
+        "avoidFoods": ["Fried snacks"],
+        "mealTiming": "...",
+        "hydrationTip": "...",
+        "sampleMeal": "..."
       },
-      "weeklyChallenge": "Complete all 3 workout days without skipping",
-      "successCriteria": "3+ workout days, 7h+ sleep, 2.5L water daily"
-    },
-    { "weekNumber": 2, "theme": "Progressive Overload", ... },
-    { "weekNumber": 3, "theme": "Optimization", ... },
-    { "weekNumber": 4, "theme": "Peak Conditioning", ... }
+      "weeklyChallenge": "...",
+      "successCriteria": "..."
+    }
   ]
 }`;
 
-    const result = await withRetry(() => model.generateContent(prompt));
-    const text = result.response.text().trim();
-    return JSON.parse(text);
+    return geminiJSON(prompt);
 };
 
 // ─── Weekly Feedback Generator ────────────────────────────────
-
-export const generateWeeklyFeedback = async (data: {
-    weekNumber: number;
-    theme: string;
-    targets: {
-        minWorkoutDays: number;
-        targetSleepHours: number;
-        waterTargetLiters: number;
-        calorieTarget: number;
-    };
-    actual: {
-        workoutDays: number;
-        avgSleepHours: number;
-        avgCalories: number;
-        avgWater: number;
-    };
-    score: number;
-    badgesEarned: string[];
-    userProfile: { fitnessLevel: string; goal: string };
-}): Promise<string> => {
+export const generateWeeklyFeedback = async (data: any): Promise<string> => {
     if (!genAI) return generateFallbackFeedback(data);
-
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-lite',
-        generationConfig: { ...generationConfig, maxOutputTokens: 512 },
-        safetySettings,
-    });
 
     const gaps: string[] = [];
     const wins: string[] = [];
@@ -519,41 +444,26 @@ export const generateWeeklyFeedback = async (data: {
     if (data.actual.workoutDays >= data.targets.minWorkoutDays) wins.push(`completed ${data.actual.workoutDays} workout days`);
     else gaps.push(`only ${data.actual.workoutDays}/${data.targets.minWorkoutDays} workout days`);
 
-    if (data.actual.avgSleepHours >= data.targets.targetSleepHours) wins.push(`great sleep (${data.actual.avgSleepHours.toFixed(1)}h avg)`);
-    else gaps.push(`low sleep (${data.actual.avgSleepHours.toFixed(1)}h vs ${data.targets.targetSleepHours}h target)`);
+    if (data.actual.avgSleepHours >= data.targets.targetSleepHours) wins.push(`great sleep`);
+    else gaps.push(`low sleep`);
 
-    if (data.actual.avgWater >= data.targets.waterTargetLiters) wins.push(`hydration on point (${data.actual.avgWater.toFixed(1)}L)`);
-    else gaps.push(`low water (${data.actual.avgWater.toFixed(1)}L vs ${data.targets.waterTargetLiters}L target)`);
+    if (data.actual.avgWater >= data.targets.waterTargetLiters) wins.push(`hydration on point`);
+    else gaps.push(`low water`);
 
     const prompt = `You are Aarogya Coach giving a motivating but honest weekly performance review.
 
-WEEK ${data.weekNumber} — ${data.theme}
-Score: ${data.score}/100
-Badges earned: ${data.badgesEarned.join(', ') || 'None'}
-User goal: ${data.userProfile.goal} | Level: ${data.userProfile.fitnessLevel}
+SCORE: ${data.score}/100
+WINS: ${wins.join(', ')}
+GAPS: ${gaps.join(', ')}
 
-WINS this week: ${wins.join(', ') || 'None'}
-GAPS this week: ${gaps.join(', ') || 'None'}
+Write a 3-4 sentence personal feedback message celebrating wins and addressing gaps. No bullet points.`;
 
-Write a 3-4 sentence personal feedback message:
-- Start with an honest assessment of the score (${data.score}/100)
-- Celebrate specific wins (use the exact numbers)
-- Address gaps with ONE concrete fix for next week
-- End with strong motivation for Week ${data.weekNumber + 1 <= 4 ? data.weekNumber + 1 : 'completion'}
-Keep it personal, warm, direct. No bullet points — just flowing text.`;
-
-    const result = await withRetry(() => model.generateContent(prompt));
-    return result.response.text().trim();
+    const reply = await withRetry(() => getModel(false).generateContent(prompt));
+    return reply.response.text().trim() || generateFallbackFeedback(data);
 };
 
-function generateFallbackFeedback(data: {
-    weekNumber: number; score: number; actual: { workoutDays: number };
-}): string {
-    if (data.score >= 80) {
-        return `Incredible Week ${data.weekNumber} — you scored ${data.score}/100! With ${data.actual.workoutDays} workout days under your belt, you're showing real commitment. Keep this momentum into the next phase of your transformation.`;
-    }
-    if (data.score >= 60) {
-        return `Week ${data.weekNumber} done — ${data.score}/100. You got ${data.actual.workoutDays} workouts in, which is a solid start. Next week, focus on consistency and hitting your daily targets to unlock higher scores.`;
-    }
-    return `Week ${data.weekNumber} complete with a score of ${data.score}/100. It was a tough week, but you showed up. The next week is a fresh start — small daily actions compound into massive results. Let's go!`;
+function generateFallbackFeedback(data: any): string {
+    if (data.score >= 80) return `Incredible Week — you scored ${data.score}/100!`;
+    if (data.score >= 60) return `Week done — ${data.score}/100. Solid start.`;
+    return `Week complete with a score of ${data.score}/100. It was tough, but you showed up. Let's go!`;
 }

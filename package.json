@@ -1,7 +1,7 @@
 {
-  "name": "ellaura",
+  "name": "aarogya-ai",
   "version": "1.0.0",
-  "description": "ELLAURA — AI-Powered Fitness & Wellness Coach with Ayurvedic Insights",
+  "description": "Aarogya AI — Intelligent Fitness & Wellness Coach with Ayurvedic Insights",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && npm run dev",
@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Md-javid/ELLAURA.git"
+    "url": "https://github.com/your-username/aarogya-ai.git"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

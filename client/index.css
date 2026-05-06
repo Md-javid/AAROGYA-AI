@@ -1,1 +1,7 @@
-/* Empty file to prevent 404 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* All custom CSS is currently inline in index.html.
+   The Tailwind CDN script tag has been replaced by this proper build integration.
+   CSS will be progressively migrated here in future iterations. */

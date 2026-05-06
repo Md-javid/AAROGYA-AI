@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { UserProfile } from './types';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
+import { syncFromBackend } from './services/storageService';
 
 /* ─────────────────────────────────────────────
    iOS 19 Liquid-Glass Aurora Background
@@ -120,6 +121,8 @@ const App: React.FC = () => {
             const data = await res.json();
             setUserProfile(data.user.profile);
             setIsAuthenticated(true);
+            // Sync logs from backend to localStorage
+            syncFromBackend().catch(() => {});
           } else {
             ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => localStorage.removeItem(k));
           }
