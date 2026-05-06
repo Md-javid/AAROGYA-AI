@@ -10,7 +10,7 @@ import { UserProfile } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const getAuthToken = () => localStorage.getItem('accessToken');
+const getAuthToken = () => sessionStorage.getItem('accessToken');
 
 const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     const token = getAuthToken();

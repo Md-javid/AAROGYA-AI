@@ -271,9 +271,9 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
             const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Login failed');
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('refreshToken', data.refreshToken);
-            localStorage.setItem('aarogya_user', JSON.stringify(data.user));
+            sessionStorage.setItem('accessToken', data.accessToken);
+            sessionStorage.setItem('refreshToken', data.refreshToken);
+            sessionStorage.setItem('aarogya_user', JSON.stringify(data.user));
             setSuccess('Welcome back! 🎉');
             setTimeout(() => onAuthSuccess(data.user, data.accessToken), 900);
         } catch (err: any) { setError(err.message || 'Login failed. Try again.'); }
@@ -300,9 +300,9 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
             const res = await fetch(`${API_URL}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, otp, profile }) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Registration failed');
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('refreshToken', data.refreshToken);
-            localStorage.setItem('aarogya_user', JSON.stringify(data.user));
+            sessionStorage.setItem('accessToken', data.accessToken);
+            sessionStorage.setItem('refreshToken', data.refreshToken);
+            sessionStorage.setItem('aarogya_user', JSON.stringify(data.user));
             setSuccess('Account created! Welcome to Aarogya AI! 🚀');
             setTimeout(() => onAuthSuccess(data.user, data.accessToken), 1500);
         } catch (err: any) { setError(err.message || 'Registration failed. Try again.'); }

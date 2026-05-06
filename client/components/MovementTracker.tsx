@@ -78,7 +78,7 @@ const fmtTime = (ms: number) => {
 /* ── Main Component ── */
 const MovementTracker: React.FC<MovementTrackerProps> = ({ elderMode = false, onXpEarned }) => {
   const [sessions, setSessions]         = useState<MovementSession[]>(() => {
-    try { return JSON.parse(localStorage.getItem('aarogya_movement') || '[]'); } catch { return []; }
+    try { return JSON.parse(sessionStorage.getItem('aarogya_movement') || '[]'); } catch { return []; }
   });
   const [active, setActive]             = useState<MovementSession | null>(null);
   const [isRunning, setIsRunning]       = useState(false);
@@ -146,7 +146,7 @@ const MovementTracker: React.FC<MovementTrackerProps> = ({ elderMode = false, on
     };
     const newSessions = [finished, ...sessions];
     setSessions(newSessions);
-    localStorage.setItem('aarogya_movement', JSON.stringify(newSessions));
+    sessionStorage.setItem('aarogya_movement', JSON.stringify(newSessions));
     setActive(null);
     resetTimer();
 

@@ -106,12 +106,12 @@ const App: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [elderMode, setElderMode] = useState(() => localStorage.getItem('aarogya_elder') === 'true');
+  const [elderMode, setElderMode] = useState(() => sessionStorage.getItem('aarogya_elder') === 'true');
 
   useEffect(() => {
     const check = async () => {
-      const token = localStorage.getItem('accessToken');
-      const savedUser = localStorage.getItem('aarogya_user');
+      const token = sessionStorage.getItem('accessToken');
+      const savedUser = sessionStorage.getItem('aarogya_user');
       if (token && savedUser) {
         try {
           const res = await fetch(`${API_URL}/auth/me`, {
@@ -121,13 +121,13 @@ const App: React.FC = () => {
             const data = await res.json();
             setUserProfile(data.user.profile);
             setIsAuthenticated(true);
-            // Sync logs from backend to localStorage
+            // Sync logs from backend to sessionStorage
             syncFromBackend().catch(() => {});
           } else {
-            ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => localStorage.removeItem(k));
+            ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => sessionStorage.removeItem(k));
           }
         } catch {
-          ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => localStorage.removeItem(k));
+          ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => sessionStorage.removeItem(k));
         }
       }
       setLoading(false);
@@ -137,12 +137,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
-    localStorage.setItem('aarogya_theme', isDarkMode ? 'dark' : 'light');
+    sessionStorage.setItem('aarogya_theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-elder', String(elderMode));
-    localStorage.setItem('aarogya_elder', String(elderMode));
+    sessionStorage.setItem('aarogya_elder', String(elderMode));
   }, [elderMode]);
 
   const handleAuthSuccess = (user: any, _token: string) => {
@@ -152,7 +152,7 @@ const App: React.FC = () => {
 
   const handleUpdateProfile = (updates: Partial<UserProfile>) => {
     setUserProfile(prev => prev ? { ...prev, ...updates } : null);
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     if (token) {
       fetch(`${API_URL}/auth/me`, {
         method: 'PATCH',
@@ -163,7 +163,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => localStorage.removeItem(k));
+    ['accessToken', 'refreshToken', 'aarogya_user'].forEach(k => sessionStorage.removeItem(k));
     setUserProfile(null);
     setIsAuthenticated(false);
   };

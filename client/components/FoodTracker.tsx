@@ -85,11 +85,11 @@ const FoodTracker: React.FC<FoodTrackerProps> = ({ elderMode = false, onXpEarned
   const today = new Date().toDateString();
 
   const [entries, setEntries] = useState<FoodEntry[]>(() => {
-    try { return JSON.parse(localStorage.getItem('aarogya_food') || '[]'); } catch { return []; }
+    try { return JSON.parse(sessionStorage.getItem('aarogya_food') || '[]'); } catch { return []; }
   });
   const [activeMeal, setActiveMeal] = useState<Meal>('Breakfast');
   const [search, setSearch]         = useState('');
-  const [water, setWater]           = useState(() => parseInt(localStorage.getItem('aarogya_water') || '0'));
+  const [water, setWater]           = useState(() => parseInt(sessionStorage.getItem('aarogya_water') || '0'));
   const [showAddForm, setShowAddForm] = useState(false);
   const [customFood, setCustomFood]   = useState({ name: '', calories: '', protein: '', carbs: '', fat: '' });
   const [showXpPop, setShowXpPop]     = useState(false);
@@ -121,7 +121,7 @@ const FoodTracker: React.FC<FoodTrackerProps> = ({ elderMode = false, onXpEarned
     };
     const updated = [entry, ...entries];
     setEntries(updated);
-    localStorage.setItem('aarogya_food', JSON.stringify(updated));
+    sessionStorage.setItem('aarogya_food', JSON.stringify(updated));
     const xp = Math.round(food.calories / 50);
     if (onXpEarned) onXpEarned(xp);
     setShowXpPop(true); setTimeout(() => setShowXpPop(false), 2000);
@@ -139,7 +139,7 @@ const FoodTracker: React.FC<FoodTrackerProps> = ({ elderMode = false, onXpEarned
     };
     const updated = [entry, ...entries];
     setEntries(updated);
-    localStorage.setItem('aarogya_food', JSON.stringify(updated));
+    sessionStorage.setItem('aarogya_food', JSON.stringify(updated));
     if (onXpEarned) onXpEarned(10);
     setCustomFood({ name: '', calories: '', protein: '', carbs: '', fat: '' });
     setShowAddForm(false);
@@ -148,13 +148,13 @@ const FoodTracker: React.FC<FoodTrackerProps> = ({ elderMode = false, onXpEarned
   const removeEntry = (id: string) => {
     const updated = entries.filter(e => e.id !== id);
     setEntries(updated);
-    localStorage.setItem('aarogya_food', JSON.stringify(updated));
+    sessionStorage.setItem('aarogya_food', JSON.stringify(updated));
   };
 
   const setWaterAndSave = (n: number) => {
     const nw = Math.max(0, Math.min(n, WATER_GLASSES_GOAL * 2));
     setWater(nw);
-    localStorage.setItem('aarogya_water', String(nw));
+    sessionStorage.setItem('aarogya_water', String(nw));
     if (n > water && n <= WATER_GLASSES_GOAL && onXpEarned) onXpEarned(5);
   };
 

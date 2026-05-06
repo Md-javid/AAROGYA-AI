@@ -15,7 +15,7 @@ class ApiService {
 
         // Add token to requests
         this.api.interceptors.request.use((config) => {
-            const token = localStorage.getItem('accessToken');
+            const token = sessionStorage.getItem('accessToken');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -27,8 +27,8 @@ class ApiService {
             (response) => response,
             async (error) => {
                 if (error.response?.status === 401) {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('user');
+                    sessionStorage.removeItem('accessToken');
+                    sessionStorage.removeItem('user');
                     window.location.href = '/login';
                 }
                 return Promise.reject(error);
@@ -40,8 +40,8 @@ class ApiService {
     async register(email: string, password: string, profile: any) {
         const { data } = await this.api.post('/auth/register', { email, password, profile });
         if (data.accessToken) {
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            sessionStorage.setItem('accessToken', data.accessToken);
+            sessionStorage.setItem('user', JSON.stringify(data.user));
         }
         return data;
     }
@@ -49,8 +49,8 @@ class ApiService {
     async login(email: string, password: string) {
         const { data } = await this.api.post('/auth/login', { email, password });
         if (data.accessToken) {
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            sessionStorage.setItem('accessToken', data.accessToken);
+            sessionStorage.setItem('user', JSON.stringify(data.user));
         }
         return data;
     }
