@@ -12,8 +12,8 @@ function App() {
 
     useEffect(() => {
         // Check if user is already logged in
-        const storedUser = sessionStorage.getItem('user');
-        const token = sessionStorage.getItem('accessToken');
+        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem('accessToken');
 
         if (storedUser && token) {
             setUser(JSON.parse(storedUser));
@@ -21,7 +21,7 @@ function App() {
         }
 
         // Check dark mode preference
-        const darkMode = sessionStorage.getItem('darkMode') === 'true';
+        const darkMode = localStorage.getItem('darkMode') === 'true';
         setIsDarkMode(darkMode);
         if (darkMode) {
             document.documentElement.classList.add('dark');
@@ -39,8 +39,8 @@ function App() {
     };
 
     const handleLogout = () => {
-        sessionStorage.removeItem('user');
-        sessionStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('accessToken');
         setUser(null);
         setIsAuthenticated(false);
     };
@@ -48,7 +48,7 @@ function App() {
     const toggleDarkMode = () => {
         const newDarkMode = !isDarkMode;
         setIsDarkMode(newDarkMode);
-        sessionStorage.setItem('darkMode', String(newDarkMode));
+        localStorage.setItem('darkMode', String(newDarkMode));
         if (newDarkMode) {
             document.documentElement.classList.add('dark');
         } else {

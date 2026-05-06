@@ -96,38 +96,52 @@ const MealVisionModal: React.FC<MealVisionModalProps> = ({ onClose, onLogged }) 
                 </button>
               ) : (
                 <div className="space-y-4 animate-fadeIn">
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { icon: <Flame size={16} />, value: result.calories, label: 'Kcal', color: '#f97316' },
-                      { icon: <Zap size={16} />, value: result.macronutrients.protein, label: 'Protein', color: '#6366f1' },
-                      { icon: <Heart size={16} />, value: `${result.healthScore}/100`, label: 'Score', color: '#10b981' },
-                    ].map((s, i) => (
-                      <div key={i} className="p-4 rounded-2xl text-center"
-                        style={{ background: `${s.color}18`, border: `1px solid ${s.color}30` }}>
-                        <div className="flex justify-center mb-1" style={{ color: s.color }}>{s.icon}</div>
-                        <span className="block text-lg font-black text-white">{s.value}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: `${s.color}99` }}>{s.label}</span>
+                  {result.isFood === false ? (
+                    <div className="p-5 rounded-2xl text-center" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(239,68,68,0.2)' }}>
+                        <X size={24} className="text-red-400" />
                       </div>
-                    ))}
-                  </div>
+                      <h4 className="font-black text-white text-lg mb-1">Not Recognized as Food</h4>
+                      <p className="text-white/60 text-sm">{result.dishName || "We couldn't detect any food in this image. Please try again with a clear photo of your meal."}</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { icon: <Flame size={16} />, value: result.calories, label: 'Kcal', color: '#f97316' },
+                          { icon: <Zap size={16} />, value: result.macronutrients.protein, label: 'Protein', color: '#6366f1' },
+                          { icon: <Heart size={16} />, value: `${result.healthScore}/100`, label: 'Score', color: '#10b981' },
+                        ].map((s, i) => (
+                          <div key={i} className="p-4 rounded-2xl text-center"
+                            style={{ background: `${s.color}18`, border: `1px solid ${s.color}30` }}>
+                            <div className="flex justify-center mb-1" style={{ color: s.color }}>{s.icon}</div>
+                            <span className="block text-lg font-black text-white">{s.value}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: `${s.color}99` }}>{s.label}</span>
+                          </div>
+                        ))}
+                      </div>
 
-                  <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(249,115,22,0.2)' }}>
-                    <h4 className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                      <Sparkles size={12} /> Ayurvedic Insight
-                    </h4>
-                    <p className="italic text-white/70 text-sm leading-relaxed">"{result.ayurvedicInsight}"</p>
-                  </div>
+                      <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(249,115,22,0.2)' }}>
+                        <h4 className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <Sparkles size={12} /> Ayurvedic Insight
+                        </h4>
+                        <p className="italic text-white/70 text-sm leading-relaxed">"{result.ayurvedicInsight}"</p>
+                      </div>
+                    </>
+                  )}
 
                   <div className="flex gap-3">
-                    <button onClick={() => onLogged(result)}
-                      className="flex-1 py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest text-white flex items-center justify-center gap-2 hover:scale-105 transition-all"
-                      style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}>
-                      <CheckCircle2 size={14} /> Add to Diary
-                    </button>
+                    {result.isFood !== false && (
+                      <button onClick={() => onLogged(result)}
+                        className="flex-1 py-3.5 rounded-2xl font-black uppercase text-[9px] tracking-widest text-white flex items-center justify-center gap-2 hover:scale-105 transition-all"
+                        style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}>
+                        <CheckCircle2 size={14} /> Add to Diary
+                      </button>
+                    )}
                     <button onClick={() => { setImage(null); setResult(null); }}
-                      className="px-5 py-3.5 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all hover:scale-105"
+                      className={`${result.isFood === false ? 'flex-1' : 'px-5'} py-3.5 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all hover:scale-105`}
                       style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
-                      Retake
+                      Retake Photo
                     </button>
                   </div>
                 </div>

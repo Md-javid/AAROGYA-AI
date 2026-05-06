@@ -12,15 +12,15 @@ const THEME_KEY = 'aarogya_theme';
 
 // ── Auth helper ──
 const getAuthHeaders = (): HeadersInit => {
-  const token = sessionStorage.getItem('accessToken');
+  const token = localStorage.getItem('accessToken');
   return token
     ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
     : { 'Content-Type': 'application/json' };
 };
 
-const isAuthenticated = () => !!sessionStorage.getItem('accessToken');
+const isAuthenticated = () => !!localStorage.getItem('accessToken');
 
-// ── Generic API caller with sessionStorage fallback ──
+// ── Generic API caller with localStorage fallback ──
 const apiPost = async <T>(endpoint: string, body: any): Promise<T | null> => {
   if (!isAuthenticated()) return null;
   try {
@@ -48,11 +48,11 @@ const apiGet = async <T>(endpoint: string): Promise<T[] | null> => {
 };
 
 // ═══════════════════════════════════════════
-// WORKOUT LOGS — syncs to backend + sessionStorage cache
+// WORKOUT LOGS — syncs to backend + localStorage cache
 // ═══════════════════════════════════════════
 export const getWorkoutLogs = (): WorkoutLog[] => {
   try {
-    const data = sessionStorage.getItem(WORKOUT_STORAGE_KEY);
+    const data = localStorage.getItem(WORKOUT_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (e) {
     console.error("Failed to load workout logs", e);
@@ -64,7 +64,7 @@ export const saveWorkoutLog = (log: Omit<WorkoutLog, 'id'>): WorkoutLog => {
   const logs = getWorkoutLogs();
   const newLog: WorkoutLog = { ...log, id: Date.now().toString() };
   const updatedLogs = [...logs, newLog];
-  sessionStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(updatedLogs));
+  localStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(updatedLogs));
 
   // Sync to backend (fire-and-forget)
   apiPost('/logs/workout', log).catch(() => {});
@@ -76,7 +76,7 @@ export const saveWorkoutLog = (log: Omit<WorkoutLog, 'id'>): WorkoutLog => {
 // ═══════════════════════════════════════════
 export const getMealLogs = (): MealLog[] => {
   try {
-    const data = sessionStorage.getItem(MEAL_STORAGE_KEY);
+    const data = localStorage.getItem(MEAL_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (e) {
     console.error("Failed to load meal logs", e);
@@ -88,7 +88,7 @@ export const saveMealLog = (log: Omit<MealLog, 'id'>): MealLog => {
   const logs = getMealLogs();
   const newLog: MealLog = { ...log, id: Date.now().toString() };
   const updatedLogs = [...logs, newLog];
-  sessionStorage.setItem(MEAL_STORAGE_KEY, JSON.stringify(updatedLogs));
+  localStorage.setItem(MEAL_STORAGE_KEY, JSON.stringify(updatedLogs));
 
   apiPost('/logs/meal', log).catch(() => {});
   return newLog;
@@ -99,7 +99,7 @@ export const saveMealLog = (log: Omit<MealLog, 'id'>): MealLog => {
 // ═══════════════════════════════════════════
 export const getSleepLogs = (): SleepLog[] => {
   try {
-    const data = sessionStorage.getItem(SLEEP_STORAGE_KEY);
+    const data = localStorage.getItem(SLEEP_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (e) {
     console.error("Failed to load sleep logs", e);
@@ -111,7 +111,7 @@ export const saveSleepLog = (log: Omit<SleepLog, 'id'>): SleepLog => {
   const logs = getSleepLogs();
   const newLog: SleepLog = { ...log, id: Date.now().toString() };
   const updatedLogs = [...logs, newLog];
-  sessionStorage.setItem(SLEEP_STORAGE_KEY, JSON.stringify(updatedLogs));
+  localStorage.setItem(SLEEP_STORAGE_KEY, JSON.stringify(updatedLogs));
 
   apiPost('/logs/sleep', log).catch(() => {});
   return newLog;
@@ -122,7 +122,7 @@ export const saveSleepLog = (log: Omit<SleepLog, 'id'>): SleepLog => {
 // ═══════════════════════════════════════════
 export const getWaterLogs = (): WaterLog[] => {
   try {
-    const data = sessionStorage.getItem(WATER_STORAGE_KEY);
+    const data = localStorage.getItem(WATER_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (e) {
     console.error("Failed to load water logs", e);
@@ -134,7 +134,7 @@ export const saveWaterLog = (log: Omit<WaterLog, 'id'>): WaterLog => {
   const logs = getWaterLogs();
   const newLog: WaterLog = { ...log, id: Date.now().toString() };
   const updatedLogs = [...logs, newLog];
-  sessionStorage.setItem(WATER_STORAGE_KEY, JSON.stringify(updatedLogs));
+  localStorage.setItem(WATER_STORAGE_KEY, JSON.stringify(updatedLogs));
 
   apiPost('/logs/water', log).catch(() => {});
   return newLog;
@@ -145,7 +145,7 @@ export const saveWaterLog = (log: Omit<WaterLog, 'id'>): WaterLog => {
 // ═══════════════════════════════════════════
 export const getEarnedBadges = (): EarnedBadge[] => {
   try {
-    const data = sessionStorage.getItem(BADGE_STORAGE_KEY);
+    const data = localStorage.getItem(BADGE_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (e) {
     console.error("Failed to load badges", e);
@@ -163,7 +163,7 @@ export const saveEarnedBadge = (badge: Badge): EarnedBadge => {
     earnedAt: new Date().toISOString(),
   };
   const updatedBadges = [...badges, newEarnedBadge];
-  sessionStorage.setItem(BADGE_STORAGE_KEY, JSON.stringify(updatedBadges));
+  localStorage.setItem(BADGE_STORAGE_KEY, JSON.stringify(updatedBadges));
   return newEarnedBadge;
 };
 
@@ -231,7 +231,7 @@ export const getStreak = (): number => {
 };
 
 // ═══════════════════════════════════════════
-// SYNC — Pull data from backend to sessionStorage
+// SYNC — Pull data from backend to localStorage
 // ═══════════════════════════════════════════
 export const syncFromBackend = async (): Promise<void> => {
   if (!isAuthenticated()) return;
@@ -244,10 +244,10 @@ export const syncFromBackend = async (): Promise<void> => {
       apiGet<WaterLog>('/logs/water'),
     ]);
 
-    if (workouts) sessionStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(workouts));
-    if (meals) sessionStorage.setItem(MEAL_STORAGE_KEY, JSON.stringify(meals));
-    if (sleeps) sessionStorage.setItem(SLEEP_STORAGE_KEY, JSON.stringify(sleeps));
-    if (waters) sessionStorage.setItem(WATER_STORAGE_KEY, JSON.stringify(waters));
+    if (workouts) localStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(workouts));
+    if (meals) localStorage.setItem(MEAL_STORAGE_KEY, JSON.stringify(meals));
+    if (sleeps) localStorage.setItem(SLEEP_STORAGE_KEY, JSON.stringify(sleeps));
+    if (waters) localStorage.setItem(WATER_STORAGE_KEY, JSON.stringify(waters));
   } catch (err) {
     console.warn('Backend sync failed, using cached data:', err);
   }
@@ -257,14 +257,14 @@ export const syncFromBackend = async (): Promise<void> => {
 // CLEAR
 // ═══════════════════════════════════════════
 export const clearLogs = () => {
-  sessionStorage.removeItem(WORKOUT_STORAGE_KEY);
-  sessionStorage.removeItem(MEAL_STORAGE_KEY);
-  sessionStorage.removeItem(SLEEP_STORAGE_KEY);
-  sessionStorage.removeItem(WATER_STORAGE_KEY);
-  sessionStorage.removeItem(BADGE_STORAGE_KEY);
+  localStorage.removeItem(WORKOUT_STORAGE_KEY);
+  localStorage.removeItem(MEAL_STORAGE_KEY);
+  localStorage.removeItem(SLEEP_STORAGE_KEY);
+  localStorage.removeItem(WATER_STORAGE_KEY);
+  localStorage.removeItem(BADGE_STORAGE_KEY);
 };
 
 export const clearAllData = () => {
   clearLogs();
-  sessionStorage.removeItem(THEME_KEY);
+  localStorage.removeItem(THEME_KEY);
 };

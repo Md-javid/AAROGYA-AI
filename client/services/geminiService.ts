@@ -3,9 +3,9 @@ import { UserProfile, DietPlan, WorkoutPlan, MealVisionResult, WorkoutVisionResu
 // Get API URL from environment variable
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Helper function to get auth token from sessionStorage
+// Helper function to get auth token from localStorage
 const getAuthToken = () => {
-    const token = sessionStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
     return token;
 };
 

@@ -228,17 +228,20 @@ export const analyzeMealImage = async (base64: string, userProfile?: any): Promi
 
     const wellnessType = userProfile?.dosha || 'Balanced';
 
-    const prompt = `Analyze this Indian meal image for a ${wellnessType} wellness profile user.
+    const prompt = `Analyze this image carefully. FIRST, determine if the image actually contains food or beverages. If it is NOT food (e.g., a person, a cat, an object, a landscape), you MUST set "isFood" to false and provide an error message in "dishName", with all other fields zeroed out.
 
-Return JSON:
+If it IS food, analyze it for a ${wellnessType} wellness profile user.
+
+Return strictly this JSON format:
 {
-  "dishName": "...",
-  "calories": 450,
-  "macronutrients": { "protein": "20g", "carbs": "60g", "fats": "15g" },
-  "ayurvedicInsight": "Wellness insight for ${wellnessType} profile",
-  "wellnessCompatibility": "Great Choice",
-  "healthScore": 8,
-  "improvementTip": "One simple way to make this meal healthier"
+  "isFood": true/false,
+  "dishName": "...", // If isFood is false, put "Not a food item detected" here
+  "calories": 450, // 0 if not food
+  "macronutrients": { "protein": "20g", "carbs": "60g", "fats": "15g" }, // "0g" if not food
+  "ayurvedicInsight": "...", // Empty if not food
+  "wellnessCompatibility": "...", // Empty if not food
+  "healthScore": 8, // 0 if not food
+  "improvementTip": "..." // Empty if not food
 }`;
 
     // Strip data URI prefix if present

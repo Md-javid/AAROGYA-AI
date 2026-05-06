@@ -96,13 +96,13 @@ const STORAGE_KEY = 'aarogya_connected_wearables';
 
 const getConnectedDevices = (): Record<string, ConnectedDevice> => {
   try {
-    const data = sessionStorage.getItem(STORAGE_KEY);
+    const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : {};
   } catch { return {}; }
 };
 
 const saveConnectedDevices = (devices: Record<string, ConnectedDevice>) => {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(devices));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(devices));
 };
 
 const WearablesView: React.FC = () => {

@@ -133,7 +133,7 @@ const PlasmaBackground: React.FC = () => (
         <div className="absolute" style={{ width: '30%', height: '1.5px', top: '45%', left: '25%', background: 'linear-gradient(90deg,transparent,rgba(255,180,255,0.5),transparent)', filter: 'blur(1.5px)', transform: 'rotate(-5deg)' }} />
 
         {/* Grain noise overlay */}
-        <div className="absolute inset-0" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")', opacity: 0.04 }} />
+        <div className="absolute inset-0 bg-white/5 opacity-10" />
 
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 85% 85% at 50% 50%,transparent 40%,rgba(0,0,10,0.55) 100%)' }} />
@@ -271,9 +271,9 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
             const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Login failed');
-            sessionStorage.setItem('accessToken', data.accessToken);
-            sessionStorage.setItem('refreshToken', data.refreshToken);
-            sessionStorage.setItem('aarogya_user', JSON.stringify(data.user));
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
+            localStorage.setItem('aarogya_user', JSON.stringify(data.user));
             setSuccess('Welcome back! 🎉');
             setTimeout(() => onAuthSuccess(data.user, data.accessToken), 900);
         } catch (err: any) { setError(err.message || 'Login failed. Try again.'); }
@@ -300,9 +300,9 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, isDarkMode, onToggleDarkMode
             const res = await fetch(`${API_URL}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, otp, profile }) });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Registration failed');
-            sessionStorage.setItem('accessToken', data.accessToken);
-            sessionStorage.setItem('refreshToken', data.refreshToken);
-            sessionStorage.setItem('aarogya_user', JSON.stringify(data.user));
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
+            localStorage.setItem('aarogya_user', JSON.stringify(data.user));
             setSuccess('Account created! Welcome to Aarogya AI! 🚀');
             setTimeout(() => onAuthSuccess(data.user, data.accessToken), 1500);
         } catch (err: any) { setError(err.message || 'Registration failed. Try again.'); }

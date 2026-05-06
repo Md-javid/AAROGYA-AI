@@ -139,16 +139,16 @@ const HOW_TO_STEPS = [
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onToggleDarkMode, onUpdateProfile, elderMode = false, onToggleElderMode }) => {
   // XP / Gamification
-  const [xp, setXp] = React.useState(() => parseInt(sessionStorage.getItem('aarogya_xp') || '0'));
+  const [xp, setXp] = React.useState(() => parseInt(localStorage.getItem('aarogya_xp') || '0'));
   const [level, setLevel] = React.useState(() => Math.floor(xp / 500) + 1);
   const [showXpPop, setShowXpPop] = React.useState(false);
   const [showLevelUp, setShowLevelUp] = React.useState(false);
-  const [showGuide, setShowGuide] = React.useState(() => !sessionStorage.getItem('aarogya_guided'));
+  const [showGuide, setShowGuide] = React.useState(() => !localStorage.getItem('aarogya_guided'));
   const awardXp = (pts: number) => {
     const newXp = xp + pts;
     const oldLevel = Math.floor(xp / 500) + 1;
     const newLevel = Math.floor(newXp / 500) + 1;
-    setXp(newXp); sessionStorage.setItem('aarogya_xp', String(newXp));
+    setXp(newXp); localStorage.setItem('aarogya_xp', String(newXp));
     setLevel(newLevel);
     setShowXpPop(true); setTimeout(() => setShowXpPop(false), 2000);
     if (newLevel > oldLevel) { setShowLevelUp(true); setTimeout(() => setShowLevelUp(false), 4000); }
@@ -309,7 +309,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, isDarkMode, onTogg
                 ))}
               </div>
               <button
-                onClick={() => { setShowGuide(false); sessionStorage.setItem('aarogya_guided', '1'); }}
+                onClick={() => { setShowGuide(false); localStorage.setItem('aarogya_guided', '1'); }}
                 className="w-full py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white transition-all hover:scale-105"
                 style={{ background: 'linear-gradient(135deg,#9B6BFF,#FF5FA0)' }}>
                 Let's Go! 🚀

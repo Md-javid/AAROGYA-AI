@@ -133,10 +133,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({
           const data = JSON.parse(event.target?.result as string);
           if (!data.profile || !data.logs) throw new Error("Invalid file format");
           onUpdateProfile(data.profile);
-          if (data.logs.workouts) sessionStorage.setItem('aarogya_workout_logs', JSON.stringify(data.logs.workouts));
-          if (data.logs.meals) sessionStorage.setItem('aarogya_meal_logs', JSON.stringify(data.logs.meals));
-          if (data.logs.sleep) sessionStorage.setItem('aarogya_sleep_logs', JSON.stringify(data.logs.sleep));
-          if (data.logs.water) sessionStorage.setItem('aarogya_water_logs', JSON.stringify(data.logs.water));
+          if (data.logs.workouts) localStorage.setItem('aarogya_workout_logs', JSON.stringify(data.logs.workouts));
+          if (data.logs.meals) localStorage.setItem('aarogya_meal_logs', JSON.stringify(data.logs.meals));
+          if (data.logs.sleep) localStorage.setItem('aarogya_sleep_logs', JSON.stringify(data.logs.sleep));
+          if (data.logs.water) localStorage.setItem('aarogya_water_logs', JSON.stringify(data.logs.water));
           alert("Data imported successfully! The application will now reload.");
           window.location.reload();
         } catch (err) {

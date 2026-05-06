@@ -20,6 +20,7 @@ export interface UserProfile {
 }
 
 export interface MealVisionResult {
+  isFood?: boolean;
   dishName: string;
   calories: number;
   macronutrients: {
