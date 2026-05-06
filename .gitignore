@@ -21,10 +21,7 @@ client/dist/
 server/.env
 client/.env
 
-# ── Lock files (optional: remove if you want reproducible builds) ──
-package-lock.json
-server/package-lock.json
-client/package-lock.json
+# ── Note: package-lock.json files ARE committed for reproducible CI builds ──
 
 # ── Python ──
 ml_model/__pycache__/
